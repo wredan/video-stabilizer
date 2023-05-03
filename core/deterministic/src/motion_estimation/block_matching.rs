@@ -1,6 +1,6 @@
 use crate::DFD;
 
-use super::{block::Block, three_step_search::ThreeStepSearch};
+use super::{block::Block, three_step_search};
 use opencv::{
   prelude::{Mat, MatTraitConst, MatTraitConstManual}, core::{Scalar, Rect, Point, CV_8UC1}, imgproc::arrowed_line
 };
@@ -47,8 +47,7 @@ impl BlockMatching {
     
         self.frame2blocks();
     
-        let mut three_step = ThreeStepSearch::new();
-        three_step.run(self.search_range, &mut self.blocks, &self.min, &self.max, &mut self.max_mv_amp, &self.anchor.as_ref().unwrap(), &self.target.as_ref().unwrap(), &mut self.dfd);
+        three_step_search::run(self.search_range, &mut self.blocks, &self.min, &self.max, &mut self.max_mv_amp, &self.anchor.as_ref().unwrap(), &self.target.as_ref().unwrap(), &mut self.dfd);
 
         self.plot_motion_field();
         self.blocks2frame();
