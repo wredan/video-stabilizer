@@ -72,7 +72,7 @@ impl Video {
     }
 
 
-    pub fn visualize(&mut self, anchor: &Mat, target: &Mat, motion_field: &Mat, anchor_p: &Mat, title: &str, a: usize, t: usize) -> Mat {
+    pub fn visualize(&self, anchor: &Mat, target: &Mat, motion_field: &Mat, anchor_p: &Mat, title: &str, a: usize, t: usize) -> Mat {
         let h: i32 = 70;
         let w: i32 = 10;
         let (H, W) = (anchor.rows(), anchor.cols());
