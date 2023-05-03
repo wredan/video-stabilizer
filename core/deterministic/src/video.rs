@@ -16,11 +16,6 @@ pub struct Video {
 }
 
 impl Video {
-    const FONT: i32 = imgproc::FONT_HERSHEY_SIMPLEX;
-    const BLUE: Scalar = Scalar::new(255.0, 0.0, 0.0, 0.0);
-    const GREEN: Scalar = Scalar::new(0.0, 255.0, 0.0, 0.0);
-    const RED: Scalar = Scalar::new(0.0, 0.0, 255.0, 0.0);
-
     pub fn new(path: String) -> Self {
         Self {
             path: path.to_string(),
