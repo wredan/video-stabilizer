@@ -1,3 +1,4 @@
+use kdam::tqdm;
 use opencv::{
     core::{Scalar, Point, Rect, CV_8UC1},
     imgproc::{self, LINE_AA},
@@ -49,7 +50,8 @@ impl Video {
         self.total_frame = Some(total_frame); // source.get value if no error else None
 
         let mut frame: Mat = Mat::default();
-        for _ in 0..total_frame {
+        println!("[INFO] Reading frames...");
+        for _ in tqdm!(0..total_frame) {
             let ret: Result<bool, opencv::Error> = source.read(&mut frame);
             if !ret.unwrap_or(false) {
                 println!("Error in Frame Read");
