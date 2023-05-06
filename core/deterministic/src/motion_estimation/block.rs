@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Block {
     pub coord: (i32, i32, i32, i32),
     pub center: (i32, i32),
