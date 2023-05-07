@@ -6,8 +6,8 @@ use opencv::{
     videoio,
 };
 
-pub struct Video {
-    path: String,
+pub struct Video<'a> {
+    path: &'a str,
     pub frames_inp: Vec<Mat>,
     pub frames_out: Vec<Mat>,
     pub total_frame: Option<i32>,
@@ -15,10 +15,10 @@ pub struct Video {
     gray: bool,
 }
 
-impl Video {
-    pub fn new(path: String) -> Self {
+impl<'a> Video<'a> {
+    pub fn new(path: &'a str) -> Self {
         Self {
-            path: path.to_string(),
+            path: path,
             frames_inp: vec![],
             frames_out: vec![],
             total_frame: None,
