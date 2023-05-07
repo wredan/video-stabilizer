@@ -71,14 +71,14 @@ pub fn global_correction_motion_vectors(frames: &Vec<Mat>, global_motion_vectors
     global_corrected_motion_vectors
 }
 
-pub fn plot_global_corrected_motion_vector(global_corrected_vector: &Vec<(f32, f32)>, width: i32, height: i32) -> Vec<Mat> {
+pub fn plot_global_corrected_motion_vector(global_corrected_vector: &Vec<(f32, f32)>, width: i32, height: i32) -> Vec<Option<Mat>> {
 
-    let mut global_corrected_vect_frames: Vec<Mat> = vec![];
+    let mut global_corrected_vect_frames: Vec<Option<Mat>> = vec![];
     for corrected_vector in global_corrected_vector.iter() {
-        let frame_res = Mat::new_rows_cols_with_default(height, width, opencv::core::CV_8UC1, Scalar::all(0.));
+        let frame_res = Mat::new_rows_cols_with_default(height, width, CV_8UC1, Scalar::all(0.));
         if let Ok(mut frame) = frame_res {
             let intensity = 255;
-            let (x2, y2) = (corrected_vector.0 as i32 * 20 + width / 2 , corrected_vector.1 as i32 * 20 + height / 2);
+            let (x2, y2) = (corrected_vector.0 as i32 + width / 2 , corrected_vector.1 as i32 + height / 2);
             arrowed_line(
                 &mut frame,
                 Point::new(width / 2, height / 2),
@@ -91,7 +91,7 @@ pub fn plot_global_corrected_motion_vector(global_corrected_vector: &Vec<(f32, f
             )
             .unwrap();
 
-            global_corrected_vect_frames.push(frame);
+            global_corrected_vect_frames.push(Some(frame));
         } else {
             // handle error
             panic!("Failed to create new frame for motion field");
