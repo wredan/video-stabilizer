@@ -1,10 +1,10 @@
-use crate::DFD;
+use crate::{DFD, config_parameters::ConfigParameters, frames_print_debug::FramesPrintDebug};
 
 use super::{block::Block, three_step_search};
 use opencv::{
   prelude::{Mat, MatTraitConst, MatTraitConstManual}, core::{Scalar, Rect, Point, CV_8UC1}, imgproc::arrowed_line
 };
-pub struct BlockMatching {
+pub struct BlockMatching<'a> {
     dfd: DFD,
     block_size: (i32, i32),
     search_range: i32,
@@ -12,16 +12,17 @@ pub struct BlockMatching {
     anchor: Option<Mat>,
     target: Option<Mat>,
     shape: Option<(i32, i32)>,
-    blocks: Vec<Block>,
+    pub blocks: Vec<Block>,
     pub anchor_p: Option<Mat>,
-    pub motion_field: Option<Mat>,
     min: (i32, i32, i32, i32), // coordinate minime
     max: (i32, i32, i32, i32), // coordinate massime
     max_mv_amp: f64, // ampiezza massima tra tutti i blocchi
+
+    config_parameters: &'a ConfigParameters,
 }
 
-impl BlockMatching {
-    pub fn new(dfd: DFD, block_size: (i32, i32), search_range: i32, motion_intensity: bool) -> Self {
+impl<'a> BlockMatching<'a>{
+    pub fn new(dfd: DFD, block_size: (i32, i32), search_range: i32, motion_intensity: bool, config_parameters: &'a ConfigParameters) -> Self {
         Self {
             dfd,
             block_size,
@@ -32,14 +33,14 @@ impl BlockMatching {
             shape: None,
             blocks: Vec::new(),
             anchor_p: None,
-            motion_field: None,
             min: (0, 0, 0, 0),
             max: (i32::MAX, i32::MAX, 0, 0),
             max_mv_amp: 0.0,
+            config_parameters: config_parameters,
         }
     }
 
-    pub fn step(&mut self, anchor: Mat, target: Mat) {
+    pub fn step(&mut self, anchor: Mat, target: Mat) -> (Option<(f32, f32)>, Option<Mat>, Option<Mat>, Option<Mat>){
         self.anchor = Some(anchor.clone());
         self.target = Some(target);
         let anchor_size: opencv::core::Size_<i32> = anchor.size().unwrap();
@@ -49,8 +50,17 @@ impl BlockMatching {
     
         three_step_search::run(self.search_range, &mut self.blocks, &self.min, &self.max, &mut self.max_mv_amp, &self.anchor.as_ref().unwrap(), &self.target.as_ref().unwrap(), &mut self.dfd);
 
-        self.plot_motion_field();
-        self.blocks2frame();
+        let global_motion_vec: (f32, f32) = self.frame_global_motion_vector();
+
+        if self.config_parameters.frames_print_debug {
+            let frame_anchor_p = self.blocks2frame();
+            let frame_motion_field = self.plot_motion_field();
+            let frame_global_motion_vector = self.plot_global_motion_vector(&global_motion_vec);
+
+            (Some(global_motion_vec), frame_anchor_p, frame_motion_field, frame_global_motion_vector)
+        } else {
+            (Some(global_motion_vec), None, None, None)
+        }
     }    
 
     fn frame2blocks(&mut self) {
@@ -80,7 +90,7 @@ impl BlockMatching {
         self.max = self.blocks[self.blocks.len() - 1].coord;
     }
 
-    fn blocks2frame(&mut self) {
+    fn blocks2frame(&mut self) -> Option<Mat> {
         // Construct the predicted frame
         let frame = Mat::new_rows_cols_with_default(self.shape.unwrap().0 as i32, self.shape.unwrap().1 as i32, CV_8UC1, Scalar::all(0.0)).unwrap();
     
@@ -95,11 +105,10 @@ impl BlockMatching {
             let mut block_shifted = Mat::roi(&frame, Rect::new(x, y, w, h)).unwrap();
             block_a.copy_to(&mut block_shifted);
         }
-    
-        self.anchor_p = Some(frame);
+        Some(frame)
     }
 
-    fn plot_motion_field(&mut self) {
+    fn plot_motion_field(&mut self) -> Option<Mat> {
         let frame_res = Mat::new_rows_cols_with_default(self.shape.unwrap().0, self.shape.unwrap().1, opencv::core::CV_8UC1, Scalar::all(0.));
         if let Ok(mut frame) = frame_res {
             for block in &self.blocks {
@@ -122,17 +131,48 @@ impl BlockMatching {
                 )
                 .unwrap();
             }
-    
-            self.motion_field = Some(frame);
+            Some(frame)
         } else {
             // handle error
             panic!("Failed to create new frame for motion field");
         }
     }
+
+    pub fn plot_global_motion_vector(&mut self, global_motion_vec: &(f32, f32)) -> Option<Mat> {
+        let frame_res = Mat::new_rows_cols_with_default(self.shape.unwrap().0, self.shape.unwrap().1, opencv::core::CV_8UC1, Scalar::all(0.));
+        if let Ok(mut frame) = frame_res {
+            let intensity = 255;
+            let (x2, y2) = (global_motion_vec.0 as i32 * 20 + self.shape.unwrap().1 / 2 , global_motion_vec.1 as i32 * 20 + self.shape.unwrap().0 / 2);
+            arrowed_line(
+                &mut frame,
+                Point::new(self.shape.unwrap().1 / 2, self.shape.unwrap().0 / 2),
+                Point::new(x2, y2),
+                Scalar::new(intensity as f64, intensity as f64, intensity as f64, intensity as f64),
+                2,
+                8,
+                0,
+                0.3,
+            )
+            .unwrap();
     
-    
+            Some(frame)
+        } else {
+            // handle error
+            panic!("Failed to create new frame for global motion vector");
+        }
+    }
     
 
+    pub fn frame_global_motion_vector(&self) -> (f32, f32) {
+        let mut sum_x: f32 = 0.0;
+        let mut sum_y:f32 = 0.0;
+        let n_blocks: f32 = self.blocks.len() as f32;
+        for block in &self.blocks {
+            sum_x += block.mv.0 as f32;
+            sum_y += block.mv.1 as f32;
+        }
+        (sum_x / n_blocks, sum_y / n_blocks)
+    }
     
 }
 
