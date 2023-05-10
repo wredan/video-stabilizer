@@ -51,6 +51,7 @@ impl FramesPrintDebug {
 
     pub fn write_video(
         &mut self,
+        global_motion_vectors: &Vec<(f32, f32)>,
         video: &Video,
         third_quadrant: &Vec<Option<Mat>>,
         fourth_quadrant: &Vec<Option<Mat>>,
@@ -59,6 +60,8 @@ impl FramesPrintDebug {
         window_title: &str,
         path: &str,
         fps: f64,
+        second_override: bool,
+        second_quadrant: &Vec<Mat>,
     ) {
 
         println!(
@@ -67,16 +70,20 @@ impl FramesPrintDebug {
         );
 
         let mut frames_out = vec![];
-        for f in tqdm!(0..video.total_frame.unwrap() - 1) {
+        for f in tqdm!(0..video.frames_inp.len() - 1) {
             let anchor = video.frames_inp[f as usize].clone();
-            let target = video.frames_inp[(f + 1) as usize].clone();
+            let target = if second_override {
+                &second_quadrant[f as usize]
+            } else {
+                &video.frames_inp[(f + 1) as usize]
+            };            
             let out = self.visualize_single_frame(
                 &anchor,
                 &target,
                 &third_quadrant[f as usize].as_ref().unwrap(),
                 third_quadrant_title,
                 &fourth_quadrant[f as usize].as_ref().unwrap(),
-                fourth_quadrant_title,
+                &format!("{} - {:?}", fourth_quadrant_title, global_motion_vectors[f as usize]),
                 window_title,
                 f as usize,
             );

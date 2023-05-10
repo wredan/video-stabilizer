@@ -6,6 +6,8 @@ pub struct ConfigParameters {
     pub dfd: crate::DFD,
     pub block_size: (i32, i32),
     pub search_range: i32,
+    pub sigma: f32,
+    pub intensity: f32,
     pub predict_from_prev: bool,
     pub motion_intensity: bool,
     pub path_out: String,
@@ -21,6 +23,8 @@ impl ConfigParameters {
         dfd: crate::DFD,
         block_size: (i32, i32),
         search_range: i32,
+        sigma: f32,
+        intensity: f32,
         predict_from_prev: bool,
         motion_intensity: bool,
         path_out: String,
@@ -34,6 +38,8 @@ impl ConfigParameters {
             dfd: dfd,
             block_size: block_size,
             search_range: search_range,
+            sigma: sigma,
+            intensity: intensity,
             predict_from_prev: predict_from_prev,
             motion_intensity: motion_intensity,
             path_out: path_out,
@@ -44,27 +50,28 @@ impl ConfigParameters {
     }
 
     pub fn default() -> ConfigParameters {
-        let block_size = (32, 32);
-        let search_range = 20;
+        let block_size = (128, 128);
+        let search_range = 4;
+        let sigma = 1.0;
+        let intensity = 1.0;
         let dfd = DFD::MSE;
         let frames_print_debug_flag = true;
         Self {
             gray: true,
-            path_in: "assets/foreman-orig.avi".to_string(),
+            path_in: "assets/unstable/1.avi".to_string(),
             dfd: DFD::MSE,
             block_size: block_size,
             search_range: search_range,
+            sigma: sigma, 
+            intensity: intensity,
             predict_from_prev: false,
             motion_intensity: true,
             path_out: format!(
-                "./out/test-gobal-{}-Size{}-{}.mp4",
-                if matches!(dfd, DFD::MSE) {
-                    "MSE"
-                } else {
-                    "MAD"
-                },
+                "./out/0-Bs{}-Sr{}-S{}-I{}.mp4",
                 block_size.0,
                 search_range,
+                sigma, 
+                intensity
             ),
             window_title: format!(
                 "Block Matching Algorithm - DFD: {} | {:?} | Search Range: {}",

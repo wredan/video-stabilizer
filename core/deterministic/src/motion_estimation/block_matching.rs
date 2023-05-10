@@ -142,7 +142,7 @@ impl<'a> BlockMatching<'a>{
         let frame_res = Mat::new_rows_cols_with_default(self.shape.unwrap().0, self.shape.unwrap().1, opencv::core::CV_8UC1, Scalar::all(0.));
         if let Ok(mut frame) = frame_res {
             let intensity = 255;
-            let (x2, y2) = (global_motion_vec.0 as i32 * 20 + self.shape.unwrap().1 / 2 , global_motion_vec.1 as i32 * 20 + self.shape.unwrap().0 / 2);
+            let (x2, y2) = (global_motion_vec.0 as i32 * 10 + self.shape.unwrap().1 / 2 , global_motion_vec.1 as i32 * 10 + self.shape.unwrap().0 / 2);
             arrowed_line(
                 &mut frame,
                 Point::new(self.shape.unwrap().1 / 2, self.shape.unwrap().0 / 2),

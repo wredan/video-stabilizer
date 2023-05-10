@@ -10,7 +10,6 @@ pub struct Video<'a> {
     path: &'a str,
     pub frames_inp: Vec<Mat>,
     pub frames_out: Vec<Mat>,
-    pub total_frame: Option<i32>,
     pub shape: (i32, i32), // H,W
     gray: bool,
 }
@@ -21,7 +20,6 @@ impl<'a> Video<'a> {
             path: path,
             frames_inp: vec![],
             frames_out: vec![],
-            total_frame: None,
             shape: (0, 0),
             gray: false,
         }
@@ -42,7 +40,6 @@ impl<'a> Video<'a> {
 
         let total_frame = source.get(videoio::CAP_PROP_FRAME_COUNT)
             .unwrap_or_else(|e| panic!("Error getting total frame count: {:?}", e)) as i32;        
-        self.total_frame = Some(total_frame); // source.get value if no error else None
 
         let mut frame: Mat = Mat::default();
         println!("[INFO] Reading frames...");
@@ -91,19 +88,6 @@ impl<'a> Video<'a> {
         target.copy_to(&mut Mat::roi(&mut frame, roi_target).unwrap());
         motion_field.copy_to(&mut Mat::roi(&mut frame, roi_motion).unwrap());
         anchor_p.copy_to(&mut Mat::roi(&mut frame, roi_anchor_p).unwrap());
-        
-    
-        // // Draw arrows on the motion field
-        // let step = 5;
-        // let color = Scalar::all(0.0);
-        // for y in (0..H).step_by(step) {
-        //     for x in (0..W).step_by(step) {
-        //         let (dx, dy) = motion_field.at_2d::<Vec2f>(y, x).unwrap().into();
-        //         let start = Point::new(x, y + h + H);
-        //         let end = Point::new((x as f32 + dx) as i32, (y as f32 + dy) as i32 + h + H);
-        //         imgproc::arrowed_line(&mut roi, start, end, color, 1, LINE_AA, 0, 0.2)?;
-        //     }
-        // }
     
         frame
     }

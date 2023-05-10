@@ -45,7 +45,7 @@ impl<'a> MotionEstimation<'a> {
         let mut frame_anchor_p_vec: Vec<Option<Mat>> = vec![];
         let mut frame_motion_field_vec: Vec<Option<Mat>> = vec![];
         let mut frame_global_motion_vec: Vec<Option<Mat>> = vec![];
-        for f in tqdm!(0..self.video.total_frame.unwrap() - 1) {
+        for f in tqdm!(0..self.video.frames_inp.len() - 1) {
             let anchor =  self.video.frames_inp[f as usize].clone();
             let target = self.video.frames_inp[(f + 1) as usize].clone();
 
