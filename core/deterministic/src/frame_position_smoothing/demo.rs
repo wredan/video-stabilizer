@@ -1,6 +1,7 @@
 use kdam::tqdm;
-use opencv::{core::{Scalar, Point, CV_8UC1, CV_32FC1}, prelude::{MatTraitConst, Mat}, imgproc::arrowed_line};
+use opencv::{core::{Scalar, Point, CV_8UC1, CV_32FC1, Vec2f}, prelude::{MatTraitConst, Mat, MatTraitConstManual}, imgproc::arrowed_line};
 use crate::frame_position_smoothing::frame_position_smoothing::{forward_dft, low_pass_filter, inverse_dft, correction_vector};
+use plotters::prelude::*;
 
 pub fn demo_global_correction_motion_vectors(global_motion_vector: &(f32, f32), fps: f32, sigma: f32) -> (f32, f32) {
     println!("Global Correction Vector Calculating...");
@@ -10,7 +11,7 @@ pub fn demo_global_correction_motion_vectors(global_motion_vector: &(f32, f32), 
     let fourier_transform = forward_dft(&data_float);
     let filtered_data = low_pass_filter(&fourier_transform, sigma);
     let inverse_filtered_data = inverse_dft(&filtered_data);
-    let correction_vector = correction_vector(&global_motion_vector, &inverse_filtered_data);
+    let correction_vector = correction_vector(&global_motion_vector, &inverse_filtered_data, 0);
     let global_corrected_vector = (
         correction_vector.0 + global_motion_vector.0,
         correction_vector.1 + global_motion_vector.1,
@@ -53,4 +54,39 @@ pub fn single_step_plot(corrected_vector: &(f32, f32), height: i32, width: i32) 
         // handle error
         panic!("Failed to create new frame for motion field");
     }
+}
+
+pub(crate) fn plot_complex_mat(data: &Mat, title: &str, x_min: f32, x_max: f32, y_min: f32, y_max: f32) -> Result<(), Box<dyn std::error::Error>> {
+    // Convert Mat to Vec<Vec<[f32; 2]>>
+    let rows = data.rows();
+    let cols = data.cols();
+    let mut complex_data: Vec<[f32; 2]> = vec![[0.0; 2]; (rows * cols) as usize];
+    for i in 0..rows {
+        for j in 0..cols {
+            let v: Vec2f = *data.at_2d(i, j).unwrap();
+            complex_data[(i * cols + j) as usize] = [v[0], v[1]];
+        }
+    }
+
+    let root = BitMapBackend::new(title, (640, 480)).into_drawing_area();
+    root.fill(&WHITE)?;
+
+    let mut chart = ChartBuilder::on(&root)
+        .caption(title, ("sans-serif", 20).into_font())
+        .margin(5)
+        .x_label_area_size(30)
+        .y_label_area_size(30)
+        .build_cartesian_2d(x_min..x_max, y_min..y_max)?;
+    
+    chart.configure_mesh()
+    .x_desc("Frequency")
+    .y_desc("Amplitude")
+    .draw()?;
+
+    chart.draw_series(
+        complex_data.iter()
+            .map(|v| Circle::new((v[0], v[1]), 1, BLUE.filled())),
+    )?;
+
+    Ok(())
 }

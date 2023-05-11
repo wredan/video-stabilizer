@@ -1,22 +1,31 @@
-use kdam::tqdm;
 use opencv::{
     core::{
-        dft, idft, mul_spectrums, DftFlags, Matx23f, Rect, Scalar, Size, Vec2f, CV_32F, CV_32FC1,
+        dft, idft, mul_spectrums, DftFlags, Scalar, Vec2f, CV_32FC1,
         CV_32FC2,
     },
     imgproc::warp_affine,
     prelude::{Mat, MatTrait, MatTraitConst, MatTraitConstManual},
 };
 
+use super::demo::plot_complex_mat;
+
+
 pub fn forward_dft(global_motion_vector: &Mat) -> Mat {
     // Calcola la trasformata di Fourier
-    let mut data = Mat::new_rows_cols_with_default(1, 2, CV_32FC2, Scalar::all(0.0)).unwrap();
+    let mut data = Mat::new_rows_cols_with_default(
+        global_motion_vector.rows(),
+        global_motion_vector.cols(),
+        CV_32FC2, 
+        Scalar::all(0.0)
+    )
+    .unwrap();
     dft(
         global_motion_vector,
         &mut data,
         DftFlags::DFT_COMPLEX_OUTPUT as i32,
         0,
-    );
+    )
+    .unwrap();
     data
 }
 
@@ -48,6 +57,9 @@ fn gaussian_low_pass(sigma: f32, rows: i32, cols: i32) -> Mat {
             *filter.at_2d_mut::<Vec2f>(y, x).unwrap() = Vec2f::from([value, 0.0]);
         }
     }
+    // Dopo aver creato il filtro, stampalo per verificarne la forma
+    println!("Gaussian filter: {:?}", filter);
+
 
     filter
 }
@@ -64,40 +76,43 @@ pub fn inverse_dft(filtered_data: &Mat) -> Mat {
     let mut inverse_filtered = Mat::new_rows_cols_with_default(
         filtered_data.rows(),
         filtered_data.cols(),
-        CV_32FC1,
+        CV_32FC2, // change to CV_32FC2
         Scalar::all(0.0),
     )
     .unwrap();
     idft(
         filtered_data,
         &mut inverse_filtered,
-        DftFlags::DFT_REAL_OUTPUT as i32,
+        DftFlags::DFT_COMPLEX_OUTPUT as i32, // change to DFT_COMPLEX_OUTPUT
         0,
-    );
+    )
+    .unwrap();
     inverse_filtered
 }
+
 
 pub fn correction_vector(
     global_motion_vector: &(f32, f32),
     inverse_filtered_data: &Mat,
+    i: i32,
 ) -> (f32, f32) {
     let (delta_x, delta_y) = global_motion_vector;
-    let estimated_delta_x = inverse_filtered_data.at::<f32>(0).unwrap();
-    let estimated_delta_y = inverse_filtered_data.at::<f32>(1).unwrap();
+    let estimated_delta = inverse_filtered_data.at_2d::<Vec2f>(i, 0).unwrap();
+    let estimated_delta_x = estimated_delta[0];
+    let estimated_delta_y = estimated_delta[1];
 
     (estimated_delta_x - delta_x, estimated_delta_y - delta_y)
 }
+
+
 
 pub fn global_correction_motion_vectors(
     global_motion_vectors: &Vec<(f32, f32)>,
     sigma: f32,
 ) -> Vec<(f32, f32)> {
-    let mut global_corrected_motion_vectors: Vec<(f32, f32)> = vec![];
+    // Step 1: Calculate the accumulated motion vectors
     let mut accumulated_motion: Vec<(f32, f32)> = vec![];
-
-    println!("Global Correction Vector Calculating...");
-
-    for (i, global_motion_vector) in tqdm!(global_motion_vectors.iter().enumerate()) {
+    for (i, global_motion_vector) in global_motion_vectors.iter().enumerate() {
         accumulated_motion.push(if i == 0 {
             *global_motion_vector
         } else {
@@ -106,63 +121,45 @@ pub fn global_correction_motion_vectors(
                 accumulated_motion[i - 1].1 + global_motion_vector.1,
             )
         });
+    }
+
+    // Step 2: Convert the accumulated motion vectors to a Mat and apply DFT, LPF, and inverse DFT
+    let flat_motion: Vec<f32> = accumulated_motion.iter().flat_map(|(x, y)| vec![*x, *y]).collect();
+    let data = Mat::from_slice(&flat_motion).unwrap().reshape(1, accumulated_motion.len() as i32).unwrap();
+
+    let mut data_float = Mat::default();
+    data.convert_to(&mut data_float, CV_32FC1, 1.0, 0.0).unwrap();
+
+    let fourier_transform = forward_dft(&data_float);
+
+    let filtered_data = low_pass_filter(&fourier_transform, sigma);
+
+    let inverse_filtered_data = inverse_dft(&filtered_data);
+
+    let intervallo1 = 500.0;
+    let intervallo2 = 200.0;
+    plot_complex_mat(&fourier_transform, "./out/Fourier Transform.png", -intervallo1, intervallo1, -intervallo1, intervallo1).unwrap();
+    plot_complex_mat(&filtered_data, "./out/Filtered Data.png", -intervallo2, intervallo2, -intervallo2, intervallo2).unwrap();
+    
+    // Step 3: Calculate the correction vectors
+    let mut global_corrected_motion_vectors: Vec<(f32, f32)> = vec![];
+    for i in 0..accumulated_motion.len() {
+        let correction_vector = correction_vector(
+            &accumulated_motion[i],
+            &inverse_filtered_data,
+            i as i32
+        );
+
         println!("\nITERAZIONE: {}", i);
-        let data = Mat::from_slice(&[accumulated_motion[i].0, accumulated_motion[i].1])
-            .unwrap()
-            .reshape(1, 1)
-            .unwrap();
-        let mut data_float = Mat::default();
-        data.convert_to(&mut data_float, CV_32FC1, 1.0, 0.0)
-            .unwrap();
-        println!(
-            "global_float: ({}, {})",
-            data_float.at::<f32>(0).unwrap(),
-            data_float.at::<f32>(1).unwrap()
-        );
-
-        let fourier_transform = forward_dft(&data_float);
-        println!(
-            "fourier_transform: ({}, {}) - ({}, {})",
-            fourier_transform.at_2d::<Vec2f>(0, 0).unwrap()[0],
-            fourier_transform.at_2d::<Vec2f>(0, 0).unwrap()[1],
-            fourier_transform.at_2d::<Vec2f>(0, 1).unwrap()[0],
-            fourier_transform.at_2d::<Vec2f>(0, 1).unwrap()[1]
-        );
-
-        let filtered_data = low_pass_filter(&fourier_transform, sigma);
-        println!(
-            "filtered_data: ({}, {}) - ({}, {})",
-            filtered_data.at_2d::<Vec2f>(0, 0).unwrap()[0],
-            filtered_data.at_2d::<Vec2f>(0, 0).unwrap()[1],
-            filtered_data.at_2d::<Vec2f>(0, 1).unwrap()[0],
-            filtered_data.at_2d::<Vec2f>(0, 1).unwrap()[1]
-        );
-
-        let inverse_filtered_data = inverse_dft(&filtered_data);
-
-        let correction_vector = correction_vector(&accumulated_motion[i], &inverse_filtered_data);
-        println!(
-            "inverse_filtered_data: ({}, {})",
-            inverse_filtered_data.at::<f32>(0).unwrap(),
-            inverse_filtered_data.at::<f32>(1).unwrap()
-        );
+        println!("data_float: {:?}", data_float.at_2d::<f32>(i as i32, 0).unwrap());
+        println!("fourier_transform: {:?}", fourier_transform.at_2d::<Vec2f>(i as i32, 0).unwrap());
+        println!("filtered_data: {:?}", filtered_data.at_2d::<Vec2f>(i as i32, 0).unwrap());
+        println!("inverse_filtered_data: {:?}", inverse_filtered_data.at_2d::<Vec2f>(i as i32, 0).unwrap());
         println!("correction_vector: {:?}", correction_vector);
-
         global_corrected_motion_vectors.push(correction_vector);
     }
-
+    
     global_corrected_motion_vectors
-}
-
-pub fn print_mat(mat: &Mat) -> opencv::Result<()> {
-    for i in 0..2 {
-        // Nota: si assume che la matrice sia di tipo CV_32FC2 per i numeri complessi.
-        // Se la tua matrice è di un tipo diverso, potrebbe essere necessario modificare il tipo di dati qui.
-        let value = mat.at_2d::<Vec2f>(0, i).unwrap();
-        println!("({}, {}): {:?}", 0, i, value);
-    }
-
-    Ok(())
 }
 
 pub fn shift_frames(

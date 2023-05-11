@@ -8,4 +8,5 @@ authors = ["Danilo Santitto <danilo.santitto@gmail.com>"]
 
 [dependencies]
 kdam = "0.3.0"
-opencv = "0.80.0"
+opencv = "0.81.1"
+plotters = "0.3.4"
