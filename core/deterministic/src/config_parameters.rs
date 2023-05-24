@@ -6,10 +6,11 @@ pub struct ConfigParameters {
     pub dfd: crate::DFD,
     pub block_size: (i32, i32),
     pub search_range: i32,
-    pub sigma: f32,
+    pub filter_intensity: f32,
     pub intensity: f32,
     pub predict_from_prev: bool,
     pub motion_intensity: bool,
+    pub base_path: String,
     pub path_out: String,
     pub window_title: String,
     pub demo: bool,
@@ -23,10 +24,11 @@ impl ConfigParameters {
         dfd: crate::DFD,
         block_size: (i32, i32),
         search_range: i32,
-        sigma: f32,
+        filter_intensity: f32,
         intensity: f32,
         predict_from_prev: bool,
         motion_intensity: bool,
+        base_path: String,
         path_out: String,
         window_title: String,
         demo: bool,
@@ -38,10 +40,11 @@ impl ConfigParameters {
             dfd: dfd,
             block_size: block_size,
             search_range: search_range,
-            sigma: sigma,
+            filter_intensity: filter_intensity,
             intensity: intensity,
             predict_from_prev: predict_from_prev,
             motion_intensity: motion_intensity,
+            base_path: base_path,
             path_out: path_out,
             window_title: window_title,
             demo: demo,
@@ -51,26 +54,27 @@ impl ConfigParameters {
 
     pub fn default() -> ConfigParameters {
         let block_size = (128, 128);
-        let search_range = 4;
-        let sigma = 1.0;
+        let search_range = 20;
+        let filter_intensity = 90.0;
         let intensity = 1.0;
         let dfd = DFD::MSE;
         let frames_print_debug_flag = true;
         Self {
             gray: true,
-            path_in: "assets/unstable/1.avi".to_string(),
+            path_in: "assets/unstable/2.avi".to_string(),
             dfd: DFD::MSE,
             block_size: block_size,
             search_range: search_range,
-            sigma: sigma, 
+            filter_intensity: filter_intensity, 
             intensity: intensity,
             predict_from_prev: false,
             motion_intensity: true,
+            base_path: "./out/2".to_string(),
             path_out: format!(
-                "./out/0-Bs{}-Sr{}-S{}-I{}.mp4",
+                "/Bs{}-Sr{}-FI{}-I{}.mp4",
                 block_size.0,
                 search_range,
-                sigma, 
+                filter_intensity, 
                 intensity
             ),
             window_title: format!(

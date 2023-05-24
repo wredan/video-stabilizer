@@ -104,11 +104,35 @@ pub fn correction_vector(
     (estimated_delta_x - delta_x, estimated_delta_y - delta_y)
 }
 
+fn calculate_sigma(data: &Mat, filter_intensity: f32) -> f32 {
+    let rows = data.rows();
+    let cols = data.cols();
 
+    // Convert Mat to Vec<f32>
+    let mut frequencies: Vec<f32> = vec![0.0; (rows * cols) as usize];
+    for i in 0..rows {
+        for j in 0..cols {
+            let v: Vec2f = *data.at_2d(i, j).unwrap();
+            frequencies[(i * cols + j) as usize] = (v[0].powi(2) + v[1].powi(2)).sqrt();
+        }
+    }
+
+    // Calculate mean
+    let mean = frequencies.iter().sum::<f32>() / frequencies.len() as f32;
+
+    // Calculate standard deviation
+    let std_dev: f32 = (frequencies.iter().map(|&v| (v - mean).powi(2)).sum::<f32>() / frequencies.len() as f32).sqrt();
+
+    // Calculate sigma based on filter_intensity
+    let sigma = std_dev * (100.0 - filter_intensity) / 100.0;
+
+    sigma
+}
 
 pub fn global_correction_motion_vectors(
     global_motion_vectors: &Vec<(f32, f32)>,
-    sigma: f32,
+    filter_intensity: f32,
+    base_path: &str,
 ) -> Vec<(f32, f32)> {
     // Step 1: Calculate the accumulated motion vectors
     let mut accumulated_motion: Vec<(f32, f32)> = vec![];
@@ -148,12 +172,12 @@ pub fn global_correction_motion_vectors(
             i as i32
         );
 
-        println!("\nITERAZIONE: {}", i);
-        println!("data_float: {:?}", data_float.at_2d::<f32>(i as i32, 0).unwrap());
-        println!("fourier_transform: {:?}", fourier_transform.at_2d::<Vec2f>(i as i32, 0).unwrap());
-        println!("filtered_data: {:?}", filtered_data.at_2d::<Vec2f>(i as i32, 0).unwrap());
-        println!("inverse_filtered_data: {:?}", inverse_filtered_data.at_2d::<Vec2f>(i as i32, 0).unwrap());
-        println!("correction_vector: {:?}", correction_vector);
+        // println!("\nITERAZIONE: {}", i);
+        // println!("data_float: {:?}", data_float.at_2d::<f32>(i as i32, 0).unwrap());
+        // println!("fourier_transform: {:?}", fourier_transform.at_2d::<Vec2f>(i as i32, 0).unwrap());
+        // println!("filtered_data: {:?}", filtered_data.at_2d::<Vec2f>(i as i32, 0).unwrap());
+        // println!("inverse_filtered_data: {:?}", inverse_filtered_data.at_2d::<Vec2f>(i as i32, 0).unwrap());
+        // println!("correction_vector: {:?}", correction_vector);
         global_corrected_motion_vectors.push(correction_vector);
     }
     
