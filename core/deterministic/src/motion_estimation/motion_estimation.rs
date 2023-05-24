@@ -14,7 +14,7 @@ pub struct MotionEstimation<'a> {
 }
 
 impl<'a> MotionEstimation<'a> {
-    pub fn new(video: &'a mut Video, config_parameters: &'a ConfigParameters) -> Self {
+    pub fn new(video: &'a Video, config_parameters: &'a ConfigParameters) -> Self {
         Self {
             block_matching: BlockMatching::new(
                 config_parameters.dfd.clone(),

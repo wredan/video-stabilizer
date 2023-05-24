@@ -93,7 +93,7 @@ impl FramesPrintDebug {
         self.write(frames_out, path, fps);
     }
 
-    fn write(&mut self, frames_out: Vec<Mat>, path: &str, fps: f64) {
+    pub fn write(&mut self, frames_out: Vec<Mat>, path: &str, fps: f64) {
         let first_frame = frames_out[0].clone();
         let h = first_frame.rows() as i32;
         let w = first_frame.cols() as i32;
