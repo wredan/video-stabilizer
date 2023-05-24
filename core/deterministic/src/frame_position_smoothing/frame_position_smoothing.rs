@@ -136,10 +136,8 @@ pub fn global_correction_motion_vectors(
 
     let inverse_filtered_data = inverse_dft(&filtered_data);
 
-    let intervallo1 = 500.0;
-    let intervallo2 = 200.0;
-    plot_complex_mat(&fourier_transform, "./out/Fourier Transform.png", -intervallo1, intervallo1, -intervallo1, intervallo1).unwrap();
-    plot_complex_mat(&filtered_data, "./out/Filtered Data.png", -intervallo2, intervallo2, -intervallo2, intervallo2).unwrap();
+    plot_complex_mat(&fourier_transform, &format!("{}/Fourier Transform.png", base_path)).unwrap();
+    plot_complex_mat(&filtered_data, &format!("{}/Filtered Data.png", base_path)).unwrap();
     
     // Step 3: Calculate the correction vectors
     let mut global_corrected_motion_vectors: Vec<(f32, f32)> = vec![];

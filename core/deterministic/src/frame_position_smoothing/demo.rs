@@ -56,17 +56,32 @@ pub fn single_step_plot(corrected_vector: &(f32, f32), height: i32, width: i32) 
     }
 }
 
-pub(crate) fn plot_complex_mat(data: &Mat, title: &str, x_min: f32, x_max: f32, y_min: f32, y_max: f32) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn plot_complex_mat(data: &Mat, title: &str) -> Result<(), Box<dyn std::error::Error>> {
     // Convert Mat to Vec<Vec<[f32; 2]>>
     let rows = data.rows();
     let cols = data.cols();
     let mut complex_data: Vec<[f32; 2]> = vec![[0.0; 2]; (rows * cols) as usize];
+    let mut x_values: Vec<f32> = Vec::new();
+    let mut y_values: Vec<f32> = Vec::new();
     for i in 0..rows {
         for j in 0..cols {
             let v: Vec2f = *data.at_2d(i, j).unwrap();
             complex_data[(i * cols + j) as usize] = [v[0], v[1]];
+            x_values.push(v[0]);
+            y_values.push(v[1]);
         }
     }
+
+    let x_mean = x_values.iter().sum::<f32>() / x_values.len() as f32;
+    let y_mean = y_values.iter().sum::<f32>() / y_values.len() as f32;
+
+    let x_std_dev: f32 = (x_values.iter().map(|&v| (v - x_mean).powi(2)).sum::<f32>() / x_values.len() as f32).sqrt();
+    let y_std_dev: f32 = (y_values.iter().map(|&v| (v - y_mean).powi(2)).sum::<f32>() / y_values.len() as f32).sqrt();
+
+    let x_min = x_mean - 2.0 * x_std_dev;
+    let x_max = x_mean + 2.0 * x_std_dev;
+    let y_min = y_mean - 2.0 * y_std_dev;
+    let y_max = y_mean + 2.0 * y_std_dev;
 
     let root = BitMapBackend::new(title, (640, 480)).into_drawing_area();
     root.fill(&WHITE)?;
@@ -75,7 +90,7 @@ pub(crate) fn plot_complex_mat(data: &Mat, title: &str, x_min: f32, x_max: f32, 
         .caption(title, ("sans-serif", 20).into_font())
         .margin(5)
         .x_label_area_size(30)
-        .y_label_area_size(30)
+        .y_label_area_size(50)
         .build_cartesian_2d(x_min..x_max, y_min..y_max)?;
     
     chart.configure_mesh()
@@ -90,3 +105,4 @@ pub(crate) fn plot_complex_mat(data: &Mat, title: &str, x_min: f32, x_max: f32, 
 
     Ok(())
 }
+
