@@ -1,7 +1,7 @@
 use opencv::{
     core::{
         dft, idft, mul_spectrums, DftFlags, Scalar, Vec2f, CV_32FC1,
-        CV_32FC2,
+        CV_32FC2, Rect, CV_8UC1,
     },
     imgproc::warp_affine,
     prelude::{Mat, MatTrait, MatTraitConst, MatTraitConstManual},
@@ -226,30 +226,33 @@ fn shift_frame(frame: &Mat, shift_x: f32, shift_y: f32) -> Result<Mat, opencv::E
     Ok(shifted_frame)
 }
 
-// pub fn crop_frames(frames: &Vec<Mat>, global_correct_motion_vectors: &Vec<(f32, f32)>) -> Result<Vec<Mat>, opencv::Error> {
-//     let (max_shift_x, max_shift_y) = global_correct_motion_vectors.iter().fold((0.0, 0.0), |acc, &vec| {
-//         (f32::max(acc.0, vec.0.abs()), f32::max(acc.1, vec.1.abs()))
-//     });
+pub fn crop_frames(frames: &Vec<Mat>, global_correct_motion_vectors: &Vec<(f32, f32)>) -> Result<Vec<Mat>, opencv::Error> {
+    let (max_shift_x, max_shift_y) = global_correct_motion_vectors.iter().fold((0.0, 0.0), |acc, &vec| {
+        (f32::max(acc.0, vec.0.abs()), f32::max(acc.1, vec.1.abs()))
+    });
 
-//     let cropped_frames: Result<Vec<Mat>, opencv::Error> = frames.iter().map(|frame| {
-//         let roi = Rect::new(
-//             max_shift_x as i32,
-//             max_shift_y as i32,
-//             frame.cols() - 2 * max_shift_x as i32,
-//             frame.rows() - 2 * max_shift_y as i32,
-//         );
+    let cropped_frames: Result<Vec<Mat>, opencv::Error> = frames.iter().map(|frame| {
+        // Calculate the ROI in the frame where the shifted frame will be drawn
+        let roi = Rect::new(
+            max_shift_x as i32,
+            max_shift_y as i32,
+            frame.cols() - 2 * max_shift_x as i32,
+            frame.rows() - 2 * max_shift_y as i32,
+        );
+        
+        if roi.x >= 0 && roi.y >= 0 && roi.x + roi.width <= frame.cols() && roi.y + roi.height <= frame.rows() {
+            let mut cropped_frame = Mat::new_rows_cols_with_default(roi.width, roi.height, frame.typ(), Scalar::all(0.0))?;
+            // let mask = Mat::ones(roi.height, roi.width, CV_8UC1)?;
+            // frame.copy_to_with_mask(&mut cropped_frame, &mask)?;
+            Ok(cropped_frame)
+        } else {
+            // Gestisci l'errore (ad esempio, restituisci un'immagine vuota o un errore)
+            Err(opencv::Error::new(-1, "Invalid ROI dimensions".to_string()))
+        }
+        
+    }).collect();
 
-//         if roi.x >= 0 && roi.y >= 0 && roi.x + roi.width <= frame.cols() && roi.y + roi.height <= frame.rows() {
-//             let mask = Mat::new_rows_cols(roi.height, roi.width, CV_8UC1);
-//             mask.set_to(Scalar::all(255))?;
-//             let mut cropped_frame = Mat::new_rows_cols(roi.height, roi.width, frame.typ())?;
-//             frame.copy_to_with_mask(&mut cropped_frame, &mask, &roi)?;
-//             Ok(cropped_frame)
-//         } else {
-//             // Gestisci l'errore (ad esempio, restituisci un'immagine vuota o un errore)
-//             Err(opencv::Error::new(-1, "Invalid ROI dimensions".to_string()))
-//         }
-//     }).collect();
+    cropped_frames
+}
 
-//     cropped_frames
-// }
+
