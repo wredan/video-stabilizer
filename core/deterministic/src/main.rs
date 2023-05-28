@@ -69,7 +69,7 @@ fn process_video(config_parameters: &ConfigParameters, video: &Video, motion_est
     );
 
     let shifted_frames = shift_frames(&video.frames_inp, &global_correct_motion_vectors, config_parameters.intensity);
-    let cropped_frames = crop_frames(&shifted_frames, &global_correct_motion_vectors).unwrap();
+    // let cropped_frames = crop_frames(&shifted_frames, &global_correct_motion_vectors).unwrap();
 
     // FramesPrintDebug::write(&mut FramesPrintDebug::CORRECT_VEC, shifted_frames, "./out/2/test.mp4", 30.0);
     
@@ -85,7 +85,7 @@ fn process_video(config_parameters: &ConfigParameters, video: &Video, motion_est
         &format!("{}{}", &config_parameters.base_path, &config_parameters.path_out),
         30.0,
         true,
-        &cropped_frames,            
+        &shifted_frames,            
     );
 }
 
