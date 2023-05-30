@@ -1,4 +1,3 @@
-use kdam::tqdm;
 use opencv::{core::{Scalar, Point, CV_8UC1, CV_32FC1, Vec2f}, prelude::{MatTraitConst, Mat, MatTraitConstManual}, imgproc::arrowed_line};
 use crate::frame_position_smoothing::frame_position_smoothing::{forward_dft, low_pass_filter, inverse_dft, correction_vector};
 use plotters::prelude::*;

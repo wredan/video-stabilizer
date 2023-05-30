@@ -163,8 +163,8 @@ pub fn global_correction_motion_vectors(
 
     let inverse_filtered_data = inverse_dft(&filtered_data);
 
-    plot_complex_mat(&fourier_transform, &format!("{}/Fourier Transform.png", base_path)).unwrap();
-    plot_complex_mat(&filtered_data, &format!("{}/Filtered Data.png", base_path)).unwrap();
+    // plot_complex_mat(&fourier_transform, &format!("{}/Fourier Transform.png", base_path)).unwrap();
+    // plot_complex_mat(&filtered_data, &format!("{}/Filtered Data.png", base_path)).unwrap();
     
     // Step 3: Calculate the correction vectors
     let mut global_corrected_motion_vectors: Vec<(f32, f32)> = vec![];
@@ -174,13 +174,7 @@ pub fn global_correction_motion_vectors(
             &inverse_filtered_data,
             i as i32
         );
-
-        // println!("\nITERAZIONE: {}", i);
-        // println!("data_float: {:?}", data_float.at_2d::<f32>(i as i32, 0).unwrap());
-        // println!("fourier_transform: {:?}", fourier_transform.at_2d::<Vec2f>(i as i32, 0).unwrap());
-        // println!("filtered_data: {:?}", filtered_data.at_2d::<Vec2f>(i as i32, 0).unwrap());
-        // println!("inverse_filtered_data: {:?}", inverse_filtered_data.at_2d::<Vec2f>(i as i32, 0).unwrap());
-        // println!("correction_vector: {:?}", correction_vector);
+  
         global_corrected_motion_vectors.push(correction_vector);
     }
     
@@ -254,5 +248,3 @@ pub fn crop_frames(frames: &Vec<Mat>, global_correct_motion_vectors: &Vec<(f32, 
 
     cropped_frames
 }
-
-

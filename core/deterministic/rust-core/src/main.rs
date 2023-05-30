@@ -71,7 +71,7 @@ fn process_video(config_parameters: &ConfigParameters, video: &Video, motion_est
     let shifted_frames = shift_frames(&video.frames_inp, &global_correct_motion_vectors, config_parameters.intensity);
     // let cropped_frames = crop_frames(&shifted_frames, &global_correct_motion_vectors).unwrap();
 
-    // FramesPrintDebug::write(&mut FramesPrintDebug::CORRECT_VEC, shifted_frames, "./out/2/test.mp4", 30.0);
+    // FramesPrintDebug::write(&mut FramesPrintDebug::CORRECT_VEC, shifted_frames, "./out/test_airplane_seat/test_airplane_seat.mp4", 30.0);
     
     FramesPrintDebug::write_video(
         &mut FramesPrintDebug::GLOBAL_MOTION_VEC,
@@ -83,7 +83,7 @@ fn process_video(config_parameters: &ConfigParameters, video: &Video, motion_est
         "global correction motion vector",
         "Demo",
         &format!("{}{}", &config_parameters.base_path, &config_parameters.path_out),
-        30.0,
+        60.0,
         true,
         &shifted_frames,            
     );

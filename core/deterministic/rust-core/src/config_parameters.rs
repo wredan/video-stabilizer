@@ -53,15 +53,15 @@ impl ConfigParameters {
     }
 
     pub fn default() -> ConfigParameters {
-        let block_size = (128, 128);
-        let search_range = 20;
-        let filter_intensity = 90.0;
+        let block_size = (1024, 1024);
+        let search_range = 16;
+        let filter_intensity = 70.0;
         let intensity = 1.0;
         let dfd = DFD::MSE;
         let frames_print_debug_flag = true;
         Self {
             gray: true,
-            path_in: "assets/unstable/2.avi".to_string(),
+            path_in: "assets/test_airplane_seat.MOV".to_string(),
             dfd: DFD::MSE,
             block_size: block_size,
             search_range: search_range,
@@ -69,7 +69,7 @@ impl ConfigParameters {
             intensity: intensity,
             predict_from_prev: false,
             motion_intensity: true,
-            base_path: "./out/2".to_string(),
+            base_path: "./out/test_airplane_seat".to_string(),
             path_out: format!(
                 "/Bs{}-Sr{}-FI{}-I{}.mp4",
                 block_size.0,
