@@ -49,7 +49,9 @@ class FramesPrintDebug:
 
     def write(self, frames_out, path, fps):
         h, w = frames_out[0].shape[:2]
-        fourcc = cv2.VideoWriter_fourcc(*'H264')
+        #fourcc = cv2.VideoWriter_fourcc(*'H264')
+        fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+        #fourcc = -1
         writer = cv2.VideoWriter(path, fourcc, fps, (w, h), True)
 
         for frame in frames_out:

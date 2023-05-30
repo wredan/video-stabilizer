@@ -39,27 +39,28 @@ def single_step_plot(corrected_vector, height, width):
     return frame
 
 def plot_complex_mat(data, path):
-    complex_data = data.ravel()
-    x_values = complex_data.real
-    y_values = complex_data.imag
+    x_values = data[:, 0, 0]  # Real part of x motion
+    y_values = data[:, 1, 0]  # Real part of y motion
 
-    x_mean = np.mean(x_values)
-    y_mean = np.mean(y_values)
+    # Compute the magnitude (Amplitude) of the motion
+    magnitude = np.sqrt(x_values**2 + y_values**2)
 
-    x_std_dev = np.std(x_values)
-    y_std_dev = np.std(y_values)
+    # Compute the phase (angle) of the motion
+    phase = np.arctan2(y_values, x_values)
 
-    x_min = x_mean - 2.0 * x_std_dev
-    x_max = x_mean + 2.0 * x_std_dev
-    y_min = y_mean - 2.0 * y_std_dev
-    y_max = y_mean + 2.0 * y_std_dev
+    fig, axs = plt.subplots(2)
 
-    plt.figure(figsize=(6.4, 4.8))
-    plt.title(path)
-    plt.xlim([x_min, x_max])
-    plt.ylim([y_min, y_max])
-    plt.xlabel("Frequency")
-    plt.ylabel("Amplitude")
-    plt.scatter(x_values, y_values, color='b', s=1)
+    # Plot the amplitude
+    axs[0].plot(magnitude, label='Amplitude')
+    axs[0].set_title('Amplitude')
+    axs[0].legend()
+
+    # Plot the phase
+    axs[1].plot(phase, label='Phase', color='r')
+    axs[1].set_title('Phase')
+    axs[1].legend()
+
+    fig.tight_layout()
+
     plt.savefig(path)
     plt.close()

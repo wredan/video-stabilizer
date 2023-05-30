@@ -2,7 +2,7 @@ import itertools
 import numpy as np
 from typing import List, Tuple
 from .block import Block
-from utils import DFD
+from src.utils import DFD
 
 class ThreeStepSearch:
     def __init__(self, search_range: int, blocks: List[Block], anchor: np.ndarray, target: np.ndarray):

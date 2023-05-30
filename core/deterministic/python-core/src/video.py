@@ -11,13 +11,17 @@ class Video:
         self.gray = False
 
     def read_frames(self, gray=False):
-        source = cv2.VideoCapture(self.path)
-        total_frame = int(source.get(cv2.CAP_PROP_FRAME_COUNT))
-
-        print("[INFO] Reading frames...")
-        for _ in tqdm(range(total_frame)):
+        try: 
+            source = cv2.VideoCapture(self.path)
+            total_frame = int(source.get(cv2.CAP_PROP_FRAME_COUNT))
+        except:
+            print("Error in Path or Frame Count")
+            exit()
+        
+        print("[INFO] Reading frames...", total_frame)
+        for i in tqdm(range(total_frame)):
             ret, frame = source.read()
-            if not ret:
+            if not (ret or frame):
                 print("Error in Frame Read")
                 break
             if gray:
