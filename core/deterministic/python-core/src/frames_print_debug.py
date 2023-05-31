@@ -24,7 +24,8 @@ class FramesPrintDebug:
         )
 
         cv2.imshow("Demo frame", out)
-        cv2.imwrite("./out/demo.png", out)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     def write_video(self, global_motion_vectors, video, third_quadrant, fourth_quadrant, third_quadrant_title, fourth_quadrant_title, window_title, path, fps, second_override, second_quadrant):
         print(f"Writing video with {third_quadrant_title} and {fourth_quadrant_title}...")
@@ -50,8 +51,8 @@ class FramesPrintDebug:
     def write(self, frames_out, path, fps):
         h, w = frames_out[0].shape[:2]
         #fourcc = cv2.VideoWriter_fourcc(*'H264')
-        fourcc = cv2.VideoWriter_fourcc(*"MJPG")
-        #fourcc = -1
+        #fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        fourcc = -1
         writer = cv2.VideoWriter(path, fourcc, fps, (w, h), True)
 
         for frame in frames_out:
@@ -75,8 +76,24 @@ class FramesPrintDebug:
 
         # reg of interest
         frame[h:h+H, :W] = anchor
-        frame[h:h+H, W+w:2*W+w] = target
+        frame[h:h+H, W+w:2*W+w] = target if anchor.shape == target.shape else self.add_border(target, anchor.shape)
         frame[h+H+20:2*H+h+20, :W] = third_quadrant
         frame[h+H+20:2*H+h+20, W+w:2*W+w] = fourth_quadrant
 
         return frame
+    
+    def add_border(self, frame, original_shape):
+        """
+        Adds a black border to the frame to match the original shape, keeping the frame in the center.
+        """
+        # calculate the borders to be added
+        top = (original_shape[0] - frame.shape[0]) // 2
+        bottom = original_shape[0] - frame.shape[0] - top
+        left = (original_shape[1] - frame.shape[1]) // 2
+        right = original_shape[1] - frame.shape[1] - left
+
+        # add the borders
+        frame_with_border = cv2.copyMakeBorder(frame, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+        
+        return frame_with_border
+
