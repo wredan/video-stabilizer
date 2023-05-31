@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 class DFD:
     def __init__(self):
@@ -38,29 +39,52 @@ def single_step_plot(corrected_vector, height, width):
     cv2.arrowedLine(frame, (width // 2, height // 2), (x2, y2), intensity, 1,tipLength=0.3)
     return frame
 
+# def plot_complex_mat(data, path):
+#     num_frames = data.shape[0]
+
+#     # Create a time array
+#     t_values = np.arange(num_frames)
+
+#     # Get real parts for X and Y
+#     x_values = data[:, 0, 0]  # Real part of x motion
+#     y_values = data[:, 1, 0]  # Real part of y motion
+
+#     # Compute the magnitude (Amplitude) of the motion
+#     magnitude = np.sqrt(x_values**2 + y_values**2)
+
+#     fig = plt.figure()
+#     ax = fig.add_subplot(111, projection='3d')
+
+#     ax.scatter(t_values, x_values, y_values, c=magnitude, cmap='viridis')
+
+#     ax.set_xlabel('Time')
+#     ax.set_ylabel('Frequency X')
+#     ax.set_zlabel('Frequency Y')
+
+#     plt.savefig(path)
+#     plt.close()
+
 def plot_complex_mat(data, path):
+    num_frames = data.shape[0]
+
+    # Create a time array
+    t_values = np.arange(num_frames)
+
+    # Get real parts for X and Y
     x_values = data[:, 0, 0]  # Real part of x motion
     y_values = data[:, 1, 0]  # Real part of y motion
 
     # Compute the magnitude (Amplitude) of the motion
     magnitude = np.sqrt(x_values**2 + y_values**2)
 
-    # Compute the phase (angle) of the motion
-    phase = np.arctan2(y_values, x_values)
+    # Create a scatter3d plot
+    scatter = go.Scatter3d(x=t_values, y=x_values, z=y_values, mode='markers', marker=dict(size=2, color=magnitude, colorscale='Viridis'))
 
-    fig, axs = plt.subplots(2)
+    # Set layout
+    layout = go.Layout(scene = dict(xaxis_title='Time', yaxis_title='Frequency X', zaxis_title='Frequency Y'))
 
-    # Plot the amplitude
-    axs[0].plot(magnitude, label='Amplitude')
-    axs[0].set_title('Amplitude')
-    axs[0].legend()
+    # Create figure
+    fig = go.Figure(data=[scatter], layout=layout)
 
-    # Plot the phase
-    axs[1].plot(phase, label='Phase', color='r')
-    axs[1].set_title('Phase')
-    axs[1].legend()
-
-    fig.tight_layout()
-
-    plt.savefig(path)
-    plt.close()
+    # Save the figure to a file
+    fig.write_html(path)

@@ -24,3 +24,15 @@ class Block():
         if amp > Block.max_mv_amp:
             Block.max_mv_amp = amp
         self.mv_amp = amp
+
+    def __str__(self):
+        return f"""
+                Block: 
+                coord={self.coord}, 
+                center={self.center}, 
+                mv={self.mv}, 
+                mv_amp={self.mv_amp},
+                min={Block.min},
+                max={Block.max},
+                max_mv_amp={Block.max_mv_amp}
+        """
