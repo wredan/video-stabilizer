@@ -70,36 +70,32 @@ class FramePositionSmoothing:
     def _correction_vector(self, global_motion_vector, inverse_filtered_data):
         # Calculate the correction vector
         delta_x, delta_y = global_motion_vector
-        # print(inverse_filtered_data[0, 0])
-        estimated_delta_x = inverse_filtered_data[0, 0]
-        estimated_delta_y = inverse_filtered_data[1, 0]
+        estimated_delta_x = inverse_filtered_data[0, 0] # Parte reale di x
+        estimated_delta_y = inverse_filtered_data[1, 0] # Parte reale di y
         return (estimated_delta_x - delta_x, estimated_delta_y - delta_y)
-
 
     def global_correction_motion_vectors(self, global_motion_vectors, filter_intensity):
         # Step 1: Calculate the accumulated motion vectors
-        accumulated_motion = np.zeros((len(global_motion_vectors), 2), dtype=np.float32)
-        for i, global_motion_vector in enumerate(global_motion_vectors):
-            if i == 0:
-                accumulated_motion[i] = global_motion_vector
-            else:
-                accumulated_motion[i] = accumulated_motion[i - 1] + global_motion_vector
+        global_motion_vectors = np.array(global_motion_vectors, dtype=np.float32)
+        accumulated_motion = np.cumsum(global_motion_vectors, axis=0)
 
         # Step 2: Convert the accumulated motion vectors to a Mat and apply DFT, LPF, and inverse DFT
 
         fourier_transform = self._forward_dft(accumulated_motion)
-        print(accumulated_motion.shape)
-        print(fourier_transform.shape)
+        print("accumulated_motion: ", accumulated_motion.shape)
+        print("fourier_transform: ", fourier_transform[0])
 
         sigma = self._calculate_sigma(fourier_transform, filter_intensity)
         print("SIGMA: ", sigma)
 
         filtered_data = self._low_pass_filter(fourier_transform, sigma)
+        print("filtered_data: ", filtered_data.shape)
 
         inverse_filtered_data = self._inverse_dft(filtered_data)
+        print("inverse_filtered_data: ", inverse_filtered_data.shape)
 
-        utils.plot_complex_mat(fourier_transform, self.configParameters.base_path + "/Fourier Transform.png")
-        utils.plot_complex_mat(filtered_data, self.configParameters.base_path + "/Filtered Data.png")
+        utils.plot_complex_mat(fourier_transform, self.configParameters.base_path + "/Fourier Transform.html")
+        utils.plot_complex_mat(filtered_data, self.configParameters.base_path + "/Filtered Data.html")
         
         # Step 3: Calculate the correction vectors
         global_corrected_motion_vectors = []
@@ -108,17 +104,3 @@ class FramePositionSmoothing:
             global_corrected_motion_vectors.append(correction_vector)
         
         return global_corrected_motion_vectors
-
-
-
-    def shift_frames(self, frames, global_correct_motion_vectors, intensity):
-        """
-        Shifts each frame according to the corresponding global motion correction vector and intensity.
-        Uses the OpenCV function cv2.warpAffine for the actual shifting.
-        """
-        shifted_frames = []
-        for frame, correction_vector in zip(frames, global_correct_motion_vectors):
-            M = np.float32([[1, 0, correction_vector[0]*intensity], [0, 1, correction_vector[1]*intensity]])
-            shifted_frame = cv2.warpAffine(frame, M, (frame.shape[1], frame.shape[0]))
-            shifted_frames.append(shifted_frame)
-        return shifted_frames
