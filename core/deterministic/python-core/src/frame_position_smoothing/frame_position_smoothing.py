@@ -38,35 +38,24 @@ class FramePositionSmoothing:
 
 
     def _gaussian_low_pass(self, sigma, rows, cols):
-        # Create the filter
-        filter = np.zeros((rows, cols, 2), np.float32)
-        total = 0.0
-        d = 2.0 * sigma * sigma
+        # create x and y ranges
+        x = cv2.getGaussianKernel(cols, sigma)
+        y = cv2.getGaussianKernel(rows, sigma)
+        
+        # create 2d filter
+        filter = np.outer(y, x)
+        
+        # convert filter to complex for compatibility with dft output
+        filter_complex = np.zeros((rows, cols, 2), np.float32)
+        filter_complex[:, :, 0] = filter
 
-        center_x = cols // 2
-        center_y = rows // 2
+        return filter_complex
 
-        for y in range(rows):
-            for x in range(cols):
-                dx = (x - center_x)
-                dy = (y - center_y)
-                value = np.exp(-(dx * dx + dy * dy) / d)
-                filter[y, x] = [value, 0.0]
-                total += value
-
-        # normalize filter so it sums to 1
-        for y in range(rows):
-            for x in range(cols):
-                value = filter[y, x][0] / total
-                filter[y, x] = [value, 0.0]
-
-        # print("Gaussian filter: ", filter)
-
-        return filter
 
     def _low_pass_filter(self, data, sigma):
         # Apply the gaussian filter
-        filter = self._gaussian_low_pass(sigma, data.shape[0], data.shape[1])
+        rows, cols = data.shape[:2]
+        filter = self._gaussian_low_pass(sigma, rows, cols)
         filtered_data = cv2.mulSpectrums(data, filter, flags=0)
         return filtered_data
 
