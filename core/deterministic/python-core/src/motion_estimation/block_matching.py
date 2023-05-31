@@ -35,11 +35,13 @@ class BlockMatching:
         else:
             return global_motion_vec, None, None, None
 
-    def frame2blocks(self): # Divides the frame matrix into block objects.
-        h, w = self.anchor_shape
-        size_h, size_w = self.config_parameters.block_size
+    def frame2blocks(self):
+        """Divides the frame matrix into block objects."""
 
-        blocks = [Block(x * size_w, y * size_h, size_w, size_h) for y in range(0, h, size_h) for x in range(0, w, size_w)]
+        (H,W) = self.anchor_shape 
+        (sizeH,sizeW) = self.config_parameters.block_size
+
+        blocks = [Block(w*sizeW, h*sizeH, sizeW, sizeH) for h in range(H//sizeH) for w in range(W//sizeW)]
 
         # store the upper-left and bottom-right block coordinates
         # for future check if the searched block inside the frame
