@@ -29,6 +29,7 @@ class ConfigParameters:
         self.motion_intensity = kwargs.get("motion_intensity", default_params["motion_intensity"])
         self.base_path = kwargs.get("base_path", default_params["base_path"])
         self.path_out = kwargs.get("path_out", self._generate_path_out())
+        self.plot_scale_factor = float(kwargs.get("plot_scale_factor", default_params["plot_scale_factor"]))
         self.window_title = kwargs.get("window_title", self._generate_window_title())
         self.demo = kwargs.get("demo", default_params["demo"])
         self.frames_print_debug = kwargs.get("frames_print_debug", default_params["frames_print_debug"])
@@ -48,6 +49,7 @@ class ConfigParameters:
             "predict_from_prev": config.getboolean("default", "predict_from_prev"),
             "motion_intensity": config.getboolean("default", "motion_intensity"),
             "base_path": config.get("default", "base_path"),
+            "plot_scale_factor": config.get("default", "plot_scale_factor"),
             "demo": config.getboolean("default", "demo"),
             "frames_print_debug": config.getboolean("default", "frames_print_debug"),
         }
