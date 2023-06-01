@@ -1,3 +1,4 @@
+from collections import defaultdict
 import numpy as np
 import cv2
 from typing import List
@@ -66,7 +67,7 @@ class BlockMatching:
     def plot_motion_field(self, blocks: List[Block]): # Construct the motion field from motion-vectors
         frame = np.zeros((self.anchor_shape[0], self.anchor_shape[1]), dtype=np.uint8)
         for block in blocks:
-            intensity = int(255. * block.mv_amp / Block.max_mv_amp) if self.config_parameters.motion_intensity and Block.max_mv_amp != 0 else 255
+            intensity = int(255. * block.mv_amp / Block.max_mv_amp) if self.config_parameters.motion_intensity and Block.max_mv_amp != 0 else 100
             x2, y2 = block.mv[0] + block.center[0], block.mv[1] + block.center[1]
             cv2.arrowedLine(frame, block.center, (x2, y2), intensity, 1, tipLength=0.3)
         return frame
@@ -74,12 +75,28 @@ class BlockMatching:
     def plot_global_motion_vector(self, global_motion_vec):
         frame = np.zeros((self.anchor_shape[0], self.anchor_shape[1]), dtype=np.uint8)
         intensity = 255
-        x2, y2 = int(global_motion_vec[0] * 10 + self.anchor_shape[1] / 2), int(global_motion_vec[1] * 10 + self.anchor_shape[0] / 2)
+        x2, y2 = int(global_motion_vec[0] + self.anchor_shape[1] / 2), int(global_motion_vec[1] + self.anchor_shape[0] / 2)
         cv2.arrowedLine(frame, (self.anchor_shape[1] // 2, self.anchor_shape[0] // 2), (x2, y2), intensity, 2, 8, 0, 0.3)
 
         return frame
 
     def frame_global_motion_vector(self, blocks: List[Block]):
-        sum_x, sum_y = sum(block.mv[0] for block in blocks), sum(block.mv[1] for block in blocks)
-        n_blocks = len(blocks)
-        return (sum_x / n_blocks, sum_y / n_blocks)
+        # Count the number of blocks moving in each direction
+        count = defaultdict(int)
+        for block in blocks:
+            direction = (round(block.mv[0]), round(block.mv[1]))
+            count[direction] += 1
+
+        # Calculate the weighted sum of the motion vectors
+        sum_x, sum_y = 0, 0
+        total_weight = 0
+        for block in blocks:
+            direction = (round(block.mv[0]), round(block.mv[1]))
+            weight = count[direction]
+            sum_x += block.mv[0] * weight
+            sum_y += block.mv[1] * weight
+            total_weight += weight
+
+        # Calculate the weighted average
+        return (sum_x / total_weight, sum_y / total_weight)
+

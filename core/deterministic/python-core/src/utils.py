@@ -88,3 +88,45 @@ def plot_complex_mat(data, path):
 
     # Save the figure to a file
     fig.write_html(path)
+
+def plot_absolute_frame_position(accumulated_motion, accumulated_filtered_motion, path, scale_factor = 0.0):
+    Xx_values = [vector[0] for vector in accumulated_motion]
+    Xy_values = [vector[1] for vector in accumulated_motion]
+    Xx_filtered_values = [vector[0] for vector in accumulated_filtered_motion]
+    Xy_filtered_values = [vector[1] for vector in accumulated_filtered_motion]
+
+    min_value = min(min(Xx_values), min(Xy_values), min(Xx_filtered_values), min(Xy_filtered_values))
+    max_value = max(max(Xx_values), max(Xy_values), max(Xx_filtered_values), max(Xy_filtered_values))
+
+    plt.plot(Xx_values, label='Xx')
+    plt.plot(Xx_filtered_values, label='Xx_fil')
+    plt.plot(Xy_values, label='Xy')
+    plt.plot(Xy_filtered_values, label='Xy_fil')
+    
+    plt.ylim(min_value - scale_factor * abs(min_value), max_value + scale_factor * abs(max_value))
+    plt.legend()
+    plt.xlabel('Frame number')
+    plt.ylabel('Position')
+    plt.title('Original and DFT domain low-pass filtered absolute frame positions')
+
+    plt.savefig(path)
+    plt.close()
+
+def plot_global_corrected_motion(global_corrected_motion_vectors, path, scale_factor = 0.0):
+    x_motion_vectors = [vector[0] for vector in global_corrected_motion_vectors]
+    y_motion_vectors = [vector[1] for vector in global_corrected_motion_vectors]
+
+    min_value = min(min(x_motion_vectors), min(y_motion_vectors))
+    max_value = max(max(x_motion_vectors), max(y_motion_vectors))
+
+    plt.plot(x_motion_vectors, label='Vxc')
+    plt.plot(y_motion_vectors, label='Vyc')
+    plt.ylim(min_value - scale_factor * abs(min_value), max_value + scale_factor * abs(max_value))
+    plt.legend()
+    plt.xlabel('Frame number')
+    plt.ylabel('Motion vector')
+    plt.title('Motion vectors for FPS stabilised')
+
+    plt.savefig(path)
+    plt.close()
+

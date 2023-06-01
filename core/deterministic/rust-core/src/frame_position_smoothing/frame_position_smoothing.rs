@@ -158,8 +158,10 @@ pub fn global_correction_motion_vectors(
 
     let sigma = calculate_sigma(&fourier_transform, filter_intensity);
     println!("SIGMA: {}", sigma);
+    println!("Fourier Trasform: {:?}", fourier_transform);
 
     let filtered_data = low_pass_filter(&fourier_transform, sigma);
+    println!("filtered_data: {:?}", filtered_data);
 
     let inverse_filtered_data = inverse_dft(&filtered_data);
 

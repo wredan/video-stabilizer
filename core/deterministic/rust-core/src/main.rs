@@ -83,7 +83,7 @@ fn process_video(config_parameters: &ConfigParameters, video: &Video, motion_est
         "global correction motion vector",
         "Demo",
         &format!("{}{}", &config_parameters.base_path, &config_parameters.path_out),
-        60.0,
+        30.0,
         true,
         &shifted_frames,            
     );

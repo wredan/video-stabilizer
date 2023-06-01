@@ -29,7 +29,9 @@ class VideoProcessing:
     
     def process_video(self):
         global_motion_vectors, frame_anchor_p_vec, frame_motion_field_vec, frame_global_motion_vec = self.motion_estimation.video_processing()
+        # utils.plot_time_position(global_motion_vectors, self.config_parameters.base_path + "/global_motion_vectors.png", self.config_parameters.plot_scale_factor)
         global_correct_motion_vectors = self.smoothing.global_correction_motion_vectors(global_motion_vectors, self.config_parameters.filter_intensity)
+        # utils.plot_time_position(global_correct_motion_vectors, self.config_parameters.base_path + "/global_correct_motion_vectors.png", self.config_parameters.plot_scale_factor)
         global_corrected_vect_frames = utils.plot_global_corrected_motion_vector(global_correct_motion_vectors, self.video.shape[1], self.video.shape[0])
         shifted_frames = PostProcessing.shift_frames(self.video.frames_inp, global_correct_motion_vectors)
         cropped_frames = PostProcessing.crop_frames(shifted_frames, global_correct_motion_vectors)
