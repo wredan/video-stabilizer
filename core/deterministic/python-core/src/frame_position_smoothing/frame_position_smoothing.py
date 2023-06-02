@@ -13,7 +13,7 @@ class FramePositionSmoothing:
         estimated_delta_x, estimated_delta_y = inverse_filtered_data
         return (estimated_delta_x - delta_x, estimated_delta_y - delta_y)
 
-    def _filtering(self, accumulated_motion):
+    def _gaussian_filtering(self, accumulated_motion):
         input_x = np.fft.fft(accumulated_motion[:, 0])
         input_y = np.fft.fft(accumulated_motion[:, 1])
         filtered_x = ndimage.fourier_gaussian(input_x, sigma=self.config_parameters.filter_intensity)
@@ -22,13 +22,13 @@ class FramePositionSmoothing:
         inverse_filtered_data_y = np.real(np.fft.ifft(filtered_y))
         inverse_filtered_data = np.column_stack((inverse_filtered_data_x, inverse_filtered_data_y))
         return inverse_filtered_data
-    
+
     def global_correction_motion_vectors(self, global_motion_vectors):
         # Step 1: Calculate the accumulated motion vectors
         accumulated_motion = self.get_accumulated_motion_vec(global_motion_vectors)
 
         # Step 2: apply fft, LPF, and inverse fft
-        inverse_filtered_data = self._filtering(accumulated_motion)
+        inverse_filtered_data = self._gaussian_filtering(accumulated_motion)
         utils.plot_absolute_frame_position(accumulated_motion, inverse_filtered_data, self.config_parameters.base_path + "/absolute_frame_position.png", self.config_parameters.plot_scale_factor)
 
         # Step 3: Calculate the correction vectors

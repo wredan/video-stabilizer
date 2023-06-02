@@ -17,7 +17,7 @@ class ThreeStepSearch:
         self.blocks = blocks
         self.anchor = anchor
         self.target = target
-        self.search_step = [search_range // 2, search_range // 3, search_range // 6]  # Define the search steps
+        self.search_step = [search_range // 2, search_range // 4, search_range // 8]  # Define the search steps
         self.search_areas = self._get_search_areas() 
     
     def _get_search_areas(self):

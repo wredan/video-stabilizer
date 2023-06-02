@@ -33,6 +33,7 @@ class ConfigParameters:
         self.window_title = kwargs.get("window_title", self._generate_window_title())
         self.demo = kwargs.get("demo", default_params["demo"])
         self.frames_print_debug = kwargs.get("frames_print_debug", default_params["frames_print_debug"])
+        self.crop_frames = kwargs.get("frames_print_debug", default_params["crop_frames"])
 
     def _parse_default_params(self, config: configparser.ConfigParser) -> dict:
         block_size = tuple(
@@ -49,9 +50,10 @@ class ConfigParameters:
             "predict_from_prev": config.getboolean("default", "predict_from_prev"),
             "motion_intensity": config.getboolean("default", "motion_intensity"),
             "base_path": config.get("default", "base_path"),
-            "plot_scale_factor": config.get("default", "plot_scale_factor"),
+            "plot_scale_factor": config.getfloat("default", "plot_scale_factor"),
             "demo": config.getboolean("default", "demo"),
             "frames_print_debug": config.getboolean("default", "frames_print_debug"),
+            "crop_frames": config.getboolean("default", "crop_frames"),
         }
     
     def _generate_path_out(self) -> str:

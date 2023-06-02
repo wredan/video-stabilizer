@@ -36,8 +36,9 @@ class VideoProcessing:
         frames = self.video.gray_frame_inp if self.config_parameters.gray else self.video.frame_inp
 
         post_processing = PostProcessing()
-        shifted_frames = post_processing.shift_frames(frames, global_correct_motion_vectors)
-        cropped_frames = post_processing.crop_frames(shifted_frames, global_correct_motion_vectors=global_correct_motion_vectors)
+        frames = post_processing.shift_frames(frames, global_correct_motion_vectors)
+        if self.config_parameters.crop_frames:
+            frames = post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors)
 
         FramesPrintDebug().write_video(
             global_motion_vectors= global_correct_motion_vectors, 
@@ -50,10 +51,11 @@ class VideoProcessing:
             path= self.config_parameters.base_path + self.config_parameters.path_out, 
             fps= 30.0, 
             second_override= True, 
-            second_quadrant= cropped_frames,
+            second_quadrant= frames,
             gray= self.config_parameters.gray)
         
-        self.compare_filtered_result(post_processing, cropped_frames)
+        if self.config_parameters.crop_frames:
+            self.compare_filtered_result(post_processing, frames)
         
 
     def compare_filtered_result(self, post_processing: PostProcessing, filtered_cropped_frames):
@@ -90,11 +92,12 @@ class VideoProcessing:
         # Step 3: Post-Processing
         post_processing = PostProcessing()
         frames = self.video.gray_frame_inp if self.config_parameters.gray else self.video.frame_inp
-        shifted_frames = post_processing.shift_frames(frames, global_correct_motion_vectors)
-        cropped_frames = post_processing.crop_frames(shifted_frames, global_correct_motion_vectors=global_correct_motion_vectors)
+        frames = post_processing.shift_frames(frames, global_correct_motion_vectors)
+        if self.config_parameters.crop_frames:
+            frames = post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors)
 
         # Saving file
-        self.video.write(frames_out= cropped_frames, path= "data/output/test.mp4", fps= 30, gray= self.config_parameters.gray)
+        self.video.write(frames_out= frames, path= "data/output/test.mp4", fps= 30, gray= self.config_parameters.gray)
     
     def run(self):
         if self.config_parameters.demo and self.config_parameters.frames_print_debug:
