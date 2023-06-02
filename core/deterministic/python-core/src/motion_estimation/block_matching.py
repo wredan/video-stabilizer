@@ -4,10 +4,10 @@ import cv2
 from typing import List
 from .block import Block
 from .three_step_search import ThreeStepSearch
-from config.config import ConfigParameters
+from config.config_video import ConfigVideoParameters
 
 class BlockMatching:
-    def __init__(self, config_parameters: ConfigParameters):
+    def __init__(self, config_parameters: ConfigVideoParameters):
         
         # Parameters
         self.config_parameters = config_parameters

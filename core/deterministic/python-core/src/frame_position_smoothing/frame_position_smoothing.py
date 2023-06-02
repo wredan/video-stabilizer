@@ -1,10 +1,10 @@
 import numpy as np
 from scipy import ndimage
-from config.config import ConfigParameters
+from config.config_video import ConfigVideoParameters
 import src.utils as utils
 class FramePositionSmoothing:
 
-    def __init__(self, config_parameters: ConfigParameters) -> None:
+    def __init__(self, config_parameters: ConfigVideoParameters) -> None:
         self.config_parameters = config_parameters
 
     def _correction_vector(self, global_motion_vector, inverse_filtered_data):

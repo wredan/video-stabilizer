@@ -1,10 +1,10 @@
 from tqdm import tqdm
 from src.video import Video
 from .block_matching import BlockMatching
-from config.config import ConfigParameters
+from config.config_video import ConfigVideoParameters
 
 class MotionEstimation:
-    def __init__(self, config_parameters: ConfigParameters):
+    def __init__(self, config_parameters: ConfigVideoParameters):
         self.config_parameters = config_parameters
 
     def demo(self, frames, anchor_index: int, target_index: int):
