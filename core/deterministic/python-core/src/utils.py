@@ -90,10 +90,10 @@ def plot_complex_mat(data, path):
     fig.write_html(path)
 
 def plot_absolute_frame_position(accumulated_motion, accumulated_filtered_motion, path, scale_factor = 0.0):
-    Xx_values = [vector[0] for vector in accumulated_motion]
-    Xy_values = [vector[1] for vector in accumulated_motion]
-    Xx_filtered_values = [vector[0] for vector in accumulated_filtered_motion]
-    Xy_filtered_values = [vector[1] for vector in accumulated_filtered_motion]
+    Xx_values = accumulated_motion[:, 0]
+    Xy_values = accumulated_motion[:, 1]
+    Xx_filtered_values = accumulated_filtered_motion[:, 0]
+    Xy_filtered_values = accumulated_filtered_motion[:, 1]
 
     min_value = min(min(Xx_values), min(Xy_values), min(Xx_filtered_values), min(Xy_filtered_values))
     max_value = max(max(Xx_values), max(Xy_values), max(Xx_filtered_values), max(Xy_filtered_values))
