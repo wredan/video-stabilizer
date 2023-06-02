@@ -10,7 +10,7 @@ class VideoProcessing:
     def __init__(self):
         self.config_parameters = ConfigParameters()
         self.video = Video(self.config_parameters.path_in)
-        self.video.read_frames(self.config_parameters.gray)
+        self.video.read_frames()
         self.motion_estimation = MotionEstimation(self.video, self.config_parameters)
         self.smoothing = FramePositionSmoothing(self.config_parameters)
 
@@ -33,7 +33,7 @@ class VideoProcessing:
         global_correct_motion_vectors = self.smoothing.global_correction_motion_vectors(global_motion_vectors)
         # utils.plot_time_position(global_correct_motion_vectors, self.config_parameters.base_path + "/global_correct_motion_vectors.png", self.config_parameters.plot_scale_factor)
         global_corrected_vect_frames = utils.plot_global_corrected_motion_vector(global_correct_motion_vectors, self.video.shape[1], self.video.shape[0])
-        shifted_frames = PostProcessing.shift_frames(self.video.frames_inp, global_correct_motion_vectors)
+        shifted_frames = PostProcessing.shift_frames(self.video.gray_frame_inp, global_correct_motion_vectors)
         cropped_frames = PostProcessing.crop_frames(shifted_frames, global_correct_motion_vectors)
         FramesPrintDebug().write_video(
             global_motion_vectors= global_correct_motion_vectors, 

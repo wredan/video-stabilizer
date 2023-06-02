@@ -7,8 +7,8 @@ class FramesPrintDebug:
         pass
 
     def show_demo_frame(self, video, a, third_quadrant, fourth_quadrant, third_quadrant_title, fourth_quadrant_title, window_title):
-        anchor = video.frames_inp[a]
-        target = video.frames_inp[a + 1]
+        anchor = video.gray_frame_inp[a]
+        target = video.gray_frame_inp[a + 1]
 
         print(f"Showing frame with {third_quadrant_title} and {fourth_quadrant_title}...")
 
@@ -31,9 +31,9 @@ class FramesPrintDebug:
         print(f"Writing video with {third_quadrant_title} and {fourth_quadrant_title}...")
 
         frames_out = []
-        for f in tqdm(range(len(video.frames_inp) - 1)):
-            anchor = video.frames_inp[f]
-            target = second_quadrant[f] if second_override else video.frames_inp[f + 1]
+        for f in tqdm(range(len(video.gray_frame_inp) - 1)):
+            anchor = video.gray_frame_inp[f]
+            target = second_quadrant[f] if second_override else video.gray_frame_inp[f + 1]
             out = self.visualize_single_frame(
                 anchor,
                 target,

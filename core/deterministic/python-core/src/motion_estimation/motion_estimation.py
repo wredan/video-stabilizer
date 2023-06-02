@@ -11,8 +11,8 @@ class MotionEstimation:
 
     def demo(self, anchor_index: int, target_index: int):
         if self.config_parameters.frames_print_debug:
-            anchor_frame = self.video.frames_inp[anchor_index].copy()
-            target_frame = self.video.frames_inp[target_index].copy()
+            anchor_frame = self.video.gray_frame_inp[anchor_index].copy()
+            target_frame = self.video.gray_frame_inp[target_index].copy()
 
             return self.block_matching.step(anchor_frame, target_frame)
         
@@ -26,9 +26,9 @@ class MotionEstimation:
         frame_motion_field_vec = []
         frame_global_motion_vec = []
         
-        for f in tqdm(range(len(self.video.frames_inp) - 1)):
-            anchor =  self.video.frames_inp[f]
-            target = self.video.frames_inp[f + 1]
+        for f in tqdm(range(len(self.video.gray_frame_inp) - 1)):
+            anchor =  self.video.gray_frame_inp[f]
+            target = self.video.gray_frame_inp[f + 1]
 
             if self.config_parameters.frames_print_debug:
                 global_motion_vec, frame_anchor_p, frame_motion_field, frame_global_motion_vector = self.block_matching.step(anchor, target)
