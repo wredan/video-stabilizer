@@ -1,5 +1,4 @@
 import numpy as np
-import cv2
 from scipy import ndimage
 from config.config import ConfigParameters
 import src.utils as utils
@@ -26,8 +25,7 @@ class FramePositionSmoothing:
     
     def global_correction_motion_vectors(self, global_motion_vectors):
         # Step 1: Calculate the accumulated motion vectors
-        global_motion_vectors = np.array(global_motion_vectors, dtype=np.float32)
-        accumulated_motion = np.cumsum(global_motion_vectors, axis=0)
+        accumulated_motion = self.get_accumulated_motion_vec(global_motion_vectors)
 
         # Step 2: apply fft, LPF, and inverse fft
         inverse_filtered_data = self._filtering(accumulated_motion)
@@ -38,3 +36,9 @@ class FramePositionSmoothing:
         utils.plot_global_corrected_motion(global_corrected_motion_vectors, self.config_parameters.base_path + "/global_corrected_motion_vectors.png", self.config_parameters.plot_scale_factor)
 
         return global_corrected_motion_vectors
+    
+    def get_accumulated_motion_vec(self, global_motion_vectors):
+        # Step 1: Calculate the accumulated motion vectors
+        global_motion_vectors = np.array(global_motion_vectors, dtype=np.float32)
+        accumulated_motion = np.cumsum(global_motion_vectors, axis=0)
+        return accumulated_motion
