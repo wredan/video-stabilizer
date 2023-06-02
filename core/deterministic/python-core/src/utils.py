@@ -1,3 +1,5 @@
+import base64
+from io import BytesIO
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -99,8 +101,8 @@ def plot_absolute_frame_position(accumulated_motion, accumulated_filtered_motion
     max_value = max(max(Xx_values), max(Xy_values), max(Xx_filtered_values), max(Xy_filtered_values))
 
     plt.plot(Xx_values, label='Xx')
-    plt.plot(Xx_filtered_values, label='Xx_fil')
     plt.plot(Xy_values, label='Xy')
+    plt.plot(Xx_filtered_values, label='Xx_fil')
     plt.plot(Xy_filtered_values, label='Xy_fil')
     
     plt.ylim(min_value - scale_factor * abs(min_value), max_value + scale_factor * abs(max_value))
@@ -108,6 +110,29 @@ def plot_absolute_frame_position(accumulated_motion, accumulated_filtered_motion
     plt.xlabel('Frame number')
     plt.ylabel('Position')
     plt.title('Original and DFT domain low-pass filtered absolute frame positions')
+
+    plt.savefig(path)
+    plt.close()
+
+def plot_compare_motion(origin_accumulated_motion, filtered_accumulated_motion, path, scale_factor = 0.0):
+    Xx_values = origin_accumulated_motion[:, 0]
+    Xy_values = origin_accumulated_motion[:, 1]
+    Xx_filtered_values = filtered_accumulated_motion[:, 0]
+    Xy_filtered_values = filtered_accumulated_motion[:, 1]
+
+    min_value = min(min(Xx_values), min(Xy_values), min(Xx_filtered_values), min(Xy_filtered_values))
+    max_value = max(max(Xx_values), max(Xy_values), max(Xx_filtered_values), max(Xy_filtered_values))
+
+    plt.plot(Xx_values, label='Xx_cropped_origin')
+    plt.plot(Xy_values, label='Xy_cropped_origin')
+    plt.plot(Xx_filtered_values, label='Xx_cropped_filtered')
+    plt.plot(Xy_filtered_values, label='Xy_cropped_filtered')
+    
+    plt.ylim(min_value - scale_factor * abs(min_value), max_value + scale_factor * abs(max_value))
+    plt.legend()
+    plt.xlabel('Frame number')
+    plt.ylabel('Position')
+    plt.title('Cropped original and Cropped Filtered absolute frame positions')
 
     plt.savefig(path)
     plt.close()
@@ -129,4 +154,3 @@ def plot_global_corrected_motion(global_corrected_motion_vectors, path, scale_fa
 
     plt.savefig(path)
     plt.close()
-

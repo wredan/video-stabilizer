@@ -5,8 +5,8 @@ from tqdm import tqdm
 class Video:
     def __init__(self, path):
         self.path = path
+        self.frame_inp = []
         self.gray_frame_inp = []
-        self.frames_out = []
         self.shape = (0, 0) # H,W
 
     def read_frames(self):
@@ -23,7 +23,7 @@ class Video:
             if not (ret or frame):
                 print("Error in Frame Read")
                 break
-            self.gray_frame_inp.append(frame)
+            self.frame_inp.append(frame)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             if self.shape == (0, 0):
                 self.shape = (frame.shape[0], frame.shape[1])
@@ -32,16 +32,13 @@ class Video:
 
         print("[INFO] Video Import Completed")
 
-    def write(self, frames_out, path, fps):
+    def write(self, frames_out, path, fps, gray = False):
         h, w = frames_out[0].shape[:2]
-        #fourcc = cv2.VideoWriter_fourcc(*'H264')
-        #fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        # fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         fourcc = -1
         writer = cv2.VideoWriter(path, fourcc, fps, (w, h), True)
 
-        for frame in frames_out:
-            if len(frame.shape) == 2:
-                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+        for frame in frames_out:          
             writer.write(frame)
 
         print("[INFO] Video Export Completed")
