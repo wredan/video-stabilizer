@@ -81,22 +81,7 @@ class BlockMatching:
         return frame
 
     def frame_global_motion_vector(self, blocks: List[Block]):
-        # Count the number of blocks moving in each direction
-        count = defaultdict(int)
-        for block in blocks:
-            direction = (round(block.mv[0]), round(block.mv[1]))
-            count[direction] += 1
-
-        # Calculate the weighted sum of the motion vectors
-        sum_x, sum_y = 0, 0
-        total_weight = 0
-        for block in blocks:
-            direction = (round(block.mv[0]), round(block.mv[1]))
-            weight = count[direction]
-            sum_x += block.mv[0] * weight
-            sum_y += block.mv[1] * weight
-            total_weight += weight
-
-        # Calculate the weighted average
-        return (sum_x / total_weight, sum_y / total_weight)
+        sum_x, sum_y = sum(block.mv[0] for block in blocks), sum(block.mv[1] for block in blocks)
+        n_blocks = len(blocks)
+        return (sum_x / n_blocks, sum_y / n_blocks)
 
