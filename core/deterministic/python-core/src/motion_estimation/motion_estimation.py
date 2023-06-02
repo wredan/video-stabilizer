@@ -4,21 +4,20 @@ from .block_matching import BlockMatching
 from config.config import ConfigParameters
 
 class MotionEstimation:
-    def __init__(self, video: Video, config_parameters: ConfigParameters):
+    def __init__(self, config_parameters: ConfigParameters):
         self.block_matching = BlockMatching(config_parameters)
-        self.video = video
         self.config_parameters = config_parameters
 
-    def demo(self, anchor_index: int, target_index: int):
+    def demo(self, frames, anchor_index: int, target_index: int):
         if self.config_parameters.frames_print_debug:
-            anchor_frame = self.video.gray_frame_inp[anchor_index].copy()
-            target_frame = self.video.gray_frame_inp[target_index].copy()
+            anchor_frame = frames[anchor_index].copy()
+            target_frame = frames[target_index].copy()
 
             return self.block_matching.step(anchor_frame, target_frame)
         
         return None, None, None, None
 
-    def video_processing(self):
+    def video_processing(self, frames):
         print("Motion Estimation (Block Matching - Three Step Search) processing...")
         
         global_motion_vectors = []
@@ -26,9 +25,9 @@ class MotionEstimation:
         frame_motion_field_vec = []
         frame_global_motion_vec = []
         
-        for f in tqdm(range(len(self.video.gray_frame_inp) - 1)):
-            anchor =  self.video.gray_frame_inp[f]
-            target = self.video.gray_frame_inp[f + 1]
+        for f in tqdm(range(len(frames) - 1)):
+            anchor =  frames[f]
+            target = frames[f + 1]
 
             if self.config_parameters.frames_print_debug:
                 global_motion_vec, frame_anchor_p, frame_motion_field, frame_global_motion_vector = self.block_matching.step(anchor, target)
