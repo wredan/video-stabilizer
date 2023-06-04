@@ -1,5 +1,4 @@
 from tqdm import tqdm
-from src.video import Video
 from .block_matching import BlockMatching
 from config.config_video import ConfigVideoParameters
 

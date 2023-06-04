@@ -1,4 +1,3 @@
-import numpy as np
 from config.config_video import ConfigVideoParameters
 from src.motion_estimation.motion_estimation import MotionEstimation
 from src.frame_position_smoothing.frame_position_smoothing import FramePositionSmoothing
@@ -18,8 +17,6 @@ class VideoProcessing:
 
     def run_demo(self):
         global_motion_vector, frame_anchor_p, frame_motion_field, frame_global_motion_vector = self.motion_estimation.demo(72, 73)
-        # global_correction_vector = FramesPrintDebug.demo_global_correction_motion_vectors(global_motion_vector, 30.0, 200.0)
-        # global_corrected_vect_frames = utils.single_step_plot(global_correction_vector, self.video.shape[0], self.video.shape[1])
         FramesPrintDebug().show_demo_frame(
             video= self.video, 
             a= 72, 
@@ -31,9 +28,7 @@ class VideoProcessing:
     
     def process_video_demo(self):
         global_motion_vectors, frame_anchor_p_vec, frame_motion_field_vec, frame_global_motion_vec = self.motion_estimation.video_processing(self.video.gray_frame_inp)
-        # utils.plot_time_position(global_motion_vectors, self.config_parameters.base_path + "/global_motion_vectors.png", self.config_parameters.plot_scale_factor)
         global_correct_motion_vectors = self.smoothing.global_correction_motion_vectors(global_motion_vectors)
-        # utils.plot_time_position(global_correct_motion_vectors, self.config_parameters.base_path + "/global_correct_motion_vectors.png", self.config_parameters.plot_scale_factor)
         global_corrected_vect_frames = utils.plot_global_corrected_motion_vector(global_correct_motion_vectors, self.video.shape[1], self.video.shape[0])
         frames = self.video.gray_frame_inp if self.config_parameters.gray else self.video.frame_inp
 
