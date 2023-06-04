@@ -1,126 +1,130 @@
-import asyncio
+import hashlib
 import os
+import re
 import uuid
-import websockets
-from http.server import SimpleHTTPRequestHandler
-from socketserver import TCPServer
+from fastapi import WebSocket, UploadFile, Request
+from fastapi.responses import FileResponse, JSONResponse
+from starlette.websockets import WebSocketState
 from src.video_processing import VideoProcessing
 from config.config_video import ConfigVideoParameters
-from .json_encoder import cod_file_uploaded_JSON, cod_error_uploading_file_JSON
+from .json_encoder import cod_error_file_processing_JSON, cod_error_filename_JSON, cod_file_processed_JSON, cod_file_uploaded_JSON, cod_error_uploading_file_JSON
 from .utils import get_file_extension
 import json
+import shutil
 
-# Gestione del trasferimento del file HTTP
-class FileHandler(SimpleHTTPRequestHandler):
-    def do_PUT(self):
-        if self.path.startswith('/upload/'):
-            length = int(self.headers['Content-Length'])
-            try:
-                extension = get_file_extension(self.path)
-                print("Extension:", extension)
-            except ValueError as e:
-                print(str(e))
-                self.send_response(400, message=cod_error_uploading_file_JSON(e))
-                # Invia gli headers
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
+# region
 
-            output_path = "data/files/output/" + self.client_address[0]
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+async def upload_file_handler(request: Request, filename: str, file: UploadFile):
+    try:
+        extension = get_file_extension(filename)
+    except ValueError as e:
+        print(str(e))
+        return cod_error_uploading_file_JSON(e)
+    
+    client_address = create_out_dir_from_client_address(request)
+    unique_name, input_path = create_in_dir_from_client_address(extension, client_address)
 
-            unique_name = str(uuid.uuid4())
-            path = "data/files/input/" + self.client_address[0] + "/" + unique_name
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(path, 'wb') as f:
-                f.write(self.rfile.read(length))
-            self.send_response(200, message=cod_file_uploaded_JSON(filename=unique_name))
-            self.end_headers()
-        else:
-            # Qui puoi gestire altre richieste GET.
-            # Ad esempio, potresti voler restituire un file specifico:
-            self.send_response(200, message=self.path)
-            # Invia gli headers
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
+    with open(input_path, 'wb') as f:
+        f.write(await file.read())
+    print(" > Uploaded video saved at: " + input_path)
+    response = cod_file_uploaded_JSON(filename=unique_name + "." + extension)
+    print(" < ", response)
+    return response
 
-    def do_GET(self):
-        if self.path.startswith('/download/'):
-            # Ottieni il percorso del file richiesto
-            requested_file = self.path[len('/download/'):]
+def create_in_dir_from_client_address(extension, client_address):
+    unique_name = str(uuid.uuid4())
+    path = os.path.join("data", "files", "input", client_address, unique_name + "." + extension)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    return unique_name,path
 
-            try:
-                # Apri il file in modalità lettura binaria
-                with open(requested_file, 'rb') as file:
-                    # Leggi il contenuto del file
-                    file_content = file.read()
+def create_out_dir_from_client_address(request: Request):
+    client_address = hashlib.sha256(request.client.host.encode()).hexdigest()
+    output_dir_path = os.path.join("data", "files", "output", client_address)
+    os.makedirs(output_dir_path, exist_ok=True)
+    return client_address
 
-                # Imposta gli headers per la risposta HTTP
-                self.send_response(200)
-                self.send_header('Content-type', 'application/octet-stream')
-                self.send_header('Content-Disposition', 'attachment; filename="{}"'.format(requested_file))
-                self.send_header('Content-Length', str(len(file_content)))
-                self.end_headers()
+def download_file_handler(request: Request, filename: str):
+    try:
+        print(" < SENDING FILE: " + filename)
+        output_path = os.path.join("data", "files", "output", hashlib.sha256(request.client.host.encode()).hexdigest(), filename)
+        print(" < SENDING FILE: " + output_path)
+        return FileResponse(path=output_path, filename=filename, media_type="multipart/form-data")
+    except FileNotFoundError:
+        return JSONResponse(status_code=404, content={"code" : "file_not_found", "error": "File not found"})
+    
+def delete_downloaded_file(request: Request):
+    try:
+        client_dir = hashlib.sha256(request.client.host.encode()).hexdigest()
+        output_path = os.path.join("data", "files", "output", client_dir)
+        input_path = os.path.join("data", "files", "input", client_dir)
+        shutil.rmtree(output_path, ignore_errors=True)
+        shutil.rmtree(input_path, ignore_errors=True)
+        print(" < Deleted dir: " + client_dir)
+        return JSONResponse(status_code=200, content={"code" : "client_dir_deleted"})
+    except FileNotFoundError:
+        return JSONResponse(status_code=404, content={"code" : "file_not_found", "error": "File not found"})
 
-                # Invia il contenuto del file come corpo della risposta
-                self.wfile.write(file_content)
+# endregion
 
-            except FileNotFoundError:
-                # Se il file richiesto non esiste, restituisci un errore 404
-                self.send_response(404)
-                self.end_headers()
+async def websocket_handler(websocket: WebSocket):
+    try:
+        data = await websocket.receive_text()
+        data = json.loads(data)
 
-        else:
-            # Qui puoi gestire altre richieste GET.
-            # Ad esempio, potresti voler restituire un file specifico:
-            self.send_response(200, message=self.path)
-            # Invia gli headers
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-
-# Gestione della connessione WebSocket
-async def websocket_handler(websocket, path):
-    async for message in websocket:
-        # Decodifica il messaggio JSON
-        data = json.loads(message)
-        print("MESSAGE: ", data)
-        if 'code' in data and data['code'] == 'file_transfer_complete':
-            print("File ricevuto, inizio elaborazione...")
-            # Qui dovresti elaborare il file e caricare il file elaborato
-            filename = data.get('filename', '')
+        if 'code' in data and data['code'] == 'start_processing':
+            print("Got File, start processing...")
+            filename = data.get('data', {}).get('filename')
             print(f"Filename: {filename}")
-            path = process_video(filename)
-            await websocket.send('file_processed: download at ' + path)
+            if(is_valid_filename(filename)):    
+                client_dir = hashlib.sha256(websocket.client.host.encode()).hexdigest()
+                proc_file_name = process_video(filename, client_dir, data)
+                response = cod_file_processed_JSON(proc_file_name)
+                print(" < ", response)
+                await websocket.send_json(response)
+            else:
+                response = cod_error_filename_JSON(filename)
+                print(" < ", response)
+                await websocket.send_json(response)
+                await websocket.close()
+    except Exception as e:
+        print("------------------- ERROR --------------------")
+        print(e)
+        if websocket.application_state != WebSocketState.DISCONNECTED:
+            response = cod_error_file_processing_JSON()
+            await websocket.send_json(response)
+            await websocket.close()
+
+def check_filename(filename: str):
+    filename.split('.')
 
 
-def start_websocket(config_parameters):
-    # Avvio del server WebSocket
-    print("Websocket running...")
-    try:
-        start_server = websockets.serve(websocket_handler, config_parameters.server_address, config_parameters.websocket_port)
-        asyncio.get_event_loop().run_until_complete(start_server)
-    except KeyboardInterrupt:
-        asyncio.get_event_loop().stop()
+def is_valid_filename(filename):
+    pattern = r'^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}\.(avi|mp4|MOV)$'
+    return re.match(pattern, filename) is not None
 
-def start_file_handler(config_parameters):
-    # Avvio del server HTTP
-    httpd = TCPServer((config_parameters.server_address, config_parameters.http_port), FileHandler)
-    print("Server http running...")
-    try:
-        asyncio.get_event_loop().run_in_executor(None, httpd.serve_forever)
-        asyncio.get_event_loop().run_forever()
-    except KeyboardInterrupt:
-        httpd.shutdown()
-        httpd.server_close()
-        asyncio.get_event_loop().stop()
-
-def process_video(video_name, stabilization_parameters = None):
+def process_video(video_name: str, client_dir: str, data = None):
     config_parameters = ConfigVideoParameters()
-    if stabilization_parameters is not None:
-        config_parameters.set_stabilization_parameters(block_size= stabilization_parameters["block_size"], 
-                                                       search_range= stabilization_parameters["search_range"], 
-                                                       filter_intensity= stabilization_parameters["filter_intensity"], 
-                                                       crop_frames= stabilization_parameters["crop_frames"])
-    video_processing = VideoProcessing(video_path= config_parameters.path_in + "/" + video_name, 
+    if data is not None:
+        block_size, search_range, filter_intensity, crop_frames = get_stabilization_parameters(data, config_parameters)
+        config_parameters.set_stabilization_parameters(block_size= block_size, 
+                                                       search_range= search_range, 
+                                                       filter_intensity= filter_intensity, 
+                                                       crop_frames= crop_frames)
+        if config_parameters.debug_mode:
+            config_parameters.path_out = config_parameters.generate_path_out()
+
+    video_processing = VideoProcessing(video_name= video_name,
+                                       client_dir=client_dir,
                                        config_parameters=config_parameters)
-    path = video_processing.run()
-    return config_parameters.base_Server_path + path
+    file_name = video_processing.run()
+    return file_name
+
+def get_stabilization_parameters(data, config_parameters: ConfigVideoParameters):
+    stabilization_parameters = data.get('data', {}).get('stabilization_parameters', {})
+    block_size = stabilization_parameters.get('block_size', config_parameters.block_size)
+    search_range = stabilization_parameters.get('search_range', config_parameters.search_range)
+    filter_intensity = stabilization_parameters.get('filter_intensity', config_parameters.filter_intensity)
+    crop_frames = stabilization_parameters.get('crop_frames', config_parameters.crop_frames)
+
+    return block_size, search_range, filter_intensity, crop_frames
+

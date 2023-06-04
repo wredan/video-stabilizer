@@ -6,8 +6,8 @@ class DFD:
     def __init__(self):
         pass
     
-    def mad(m1,m2):
-        return np.absolute(np.subtract(m1,m2)).mean()
+    # def mad(m1,m2):
+    #     return np.absolute(np.subtract(m1,m2)).mean()
 
     def mse(m1,m2):
         return np.square(np.subtract(m1,m2)).mean()
@@ -20,7 +20,6 @@ def opencv_show_image(win_name, img):
 
 def opencv_imwrite(filename, img):
     cv2.imwrite(filename, img, [cv2.IMWRITE_PNG_COMPRESSION, 9])
-
 
 def plot_global_corrected_motion_vector(global_corrected_vector, width, height):
     global_corrected_vect_frames = []

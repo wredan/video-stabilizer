@@ -1,10 +1,12 @@
+import os
 import numpy as np
 from scipy import ndimage
 from config.config_video import ConfigVideoParameters
 import src.utils as utils
 class FramePositionSmoothing:
 
-    def __init__(self, config_parameters: ConfigVideoParameters) -> None:
+    def __init__(self, config_parameters: ConfigVideoParameters, client_dir: str) -> None:
+        self.client_dir = client_dir
         self.config_parameters = config_parameters
 
     def _correction_vector(self, global_motion_vector, inverse_filtered_data):
@@ -29,16 +31,22 @@ class FramePositionSmoothing:
 
         # Step 2: apply fft, LPF, and inverse fft
         inverse_filtered_data = self._gaussian_filtering(accumulated_motion)
-        utils.plot_absolute_frame_position(accumulated_motion, inverse_filtered_data, self.config_parameters.base_path + "/absolute_frame_position.png", self.config_parameters.plot_scale_factor)
+        if self.config_parameters.debug_mode:
+            utils.plot_absolute_frame_position(accumulated_motion, 
+                                            inverse_filtered_data, 
+                                            os.path.join(self.config_parameters.base_path, self.client_dir, "absolute_frame_position.png"),
+                                            self.config_parameters.plot_scale_factor)
 
         # Step 3: Calculate the correction vectors
         global_corrected_motion_vectors = [ self._correction_vector(acc_motion, inv_filtered_data) for acc_motion, inv_filtered_data in zip(accumulated_motion, inverse_filtered_data)]
-        utils.plot_global_corrected_motion(global_corrected_motion_vectors, self.config_parameters.base_path + "/global_corrected_motion_vectors.png", self.config_parameters.plot_scale_factor)
+        if self.config_parameters.debug_mode:
+            utils.plot_global_corrected_motion(global_corrected_motion_vectors, 
+                                           os.path.join(self.config_parameters.base_path, self.client_dir, "global_corrected_motion_vectors.png"),
+                                           self.config_parameters.plot_scale_factor)
 
         return global_corrected_motion_vectors
     
     def get_accumulated_motion_vec(self, global_motion_vectors):
-        # Step 1: Calculate the accumulated motion vectors
         global_motion_vectors = np.array(global_motion_vectors, dtype=np.float32)
         accumulated_motion = np.cumsum(global_motion_vectors, axis=0)
         return accumulated_motion

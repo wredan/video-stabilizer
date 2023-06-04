@@ -8,7 +8,7 @@ class PostProcessing:
 
     def shift_frames(self, frames, global_correct_motion_vectors):
         """
-        Shifts each frame according to the corresponding global motion correction vector and intensity.
+        Shifts each frame according to the corresponding global motion correction vector.
         Uses the OpenCV function cv2.warpAffine for the actual shifting.
         """
         shifted_frames = []

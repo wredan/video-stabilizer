@@ -1,43 +1,55 @@
 import json
 
+#region HTTP
 def cod_file_uploaded_JSON(filename = None):
-    data = {
+    json_string = {
         "code": "file_uploaded",
         "data": {
-            "message": "File uploaded successfully! Use http://.../donwload/{filename}.mp4 to request the compouted file when it's done.".format(filename),
-            "filename": filename + ".mp4"
+            "message": "File uploaded successfully! Use http://.../download/{} to request the processed file when it's done.".format(filename),
+            "filename": filename
         }
     }
-    json_string = json.dumps(data)
     return json_string
 
 def cod_error_uploading_file_JSON(error = None):
-    data = {
+    json_string = {
         "code": "error_uploading_file",
         "data": {
             "message": "Error while uploading or saving the file, try again please.",
             "error": error
         }
     }
-    json_string = json.dumps(data)
     return json_string
 
-def cod_JSON(code, complete_elab_value = None, file_path = None, filename = None):
-    data = {
-        "code": code,
+#endregion
+
+#region websocket
+
+def cod_error_filename_JSON(filename):
+    json_string = {
+        "code": "error_filename",
         "data": {
-            "complete_elab_value": complete_elab_value,
-            "file_path": file_path,
+            "message": "Filename {} is not recognized. Provide a valid filename please. Valid: video_uuid.(avi|mp4|MOV).".format(filename),
+        }
+    }
+    return json_string
+
+def cod_file_processed_JSON(filename):
+    json_string = {
+        "code": "file_processed_success",
+        "data": {
+            "message": "Filename {} has been processed successfully.".format(filename),
             "filename": filename
         }
     }
-    json_string = json.dumps(data)
     return json_string
 
-def decod_JSON(json_string):
-    data = json.loads(json_string)
-    code = data["code"]
-    complete_elab_value = data["data"]["complete_elab_value"]
-    file_path = data["data"]["file_path"]
-    filename = data["data"]["filename"]
-    return code, complete_elab_value, file_path, filename
+def cod_error_file_processing_JSON():
+    json_string = {
+        "code": "file_error_processing",
+        "data": {
+            "message": "Internal Error: error during file processing",
+        }
+    }
+    return json_string
+#endregion

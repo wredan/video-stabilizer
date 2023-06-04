@@ -1,21 +1,23 @@
 [default]
-gray = False
 path_in = data/files/input
-dfd = MSE
+base_server_path=
+base_path = data/files/output
+path_out =
+
 block_size = 64,64
 search_range = 16
 filter_intensity = 40.0
 fps= 30
-intensity = 1.0
-predict_from_prev = False
+
+gray = False
 motion_intensity = True
-base_server_path=
-base_path = data/files/output
-path_out =
+
+demo = False
 window_title =
 plot_scale_factor = 0.0
-demo = False
-frames_print_debug = False
+compare_filtered_result = True
+
+debug_mode = False
 crop_frames = False
 
 [connection]

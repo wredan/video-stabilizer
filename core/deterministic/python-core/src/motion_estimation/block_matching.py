@@ -21,16 +21,13 @@ class BlockMatching:
         self.anchor_shape  = anchor.shape
 
         raw_blocks = self.frame2blocks()
-        
-        # for block in raw_blocks:
-        #     print(block)
 
         three_step_search = ThreeStepSearch(self.config_parameters.search_range, raw_blocks, anchor, target)
         blocks = three_step_search.run()
 
         global_motion_vec = self.frame_global_motion_vector(blocks)
 
-        if self.config_parameters.frames_print_debug:
+        if self.config_parameters.debug_mode:
             frame_anchor_p = self.blocks2frame(blocks, anchor)
             frame_motion_field = self.plot_motion_field(blocks)
             frame_global_motion_vector = self.plot_global_motion_vector(global_motion_vec)

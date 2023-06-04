@@ -40,7 +40,7 @@ class FramesPrintDebug:
         print(f"Writing video with {third_quadrant_title} and {fourth_quadrant_title}...")
 
         frames_out = []
-        for f in tqdm(range(len(video_frames) - 2)):
+        for f in tqdm(range(len(video_frames) - 1)):
             anchor = video_frames[f]
             target = second_quadrant[f] if second_override else video_frames
             out = self.visualize_single_gray_frame(

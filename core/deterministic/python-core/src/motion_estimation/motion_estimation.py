@@ -23,13 +23,12 @@ class MotionEstimation:
         frame_motion_field_vec = []
         frame_global_motion_vec = []
         block_matching = BlockMatching(self.config_parameters)
-
         
         for f in tqdm(range(len(frames) - 1)):
             anchor =  frames[f]
             target = frames[f + 1]
 
-            if self.config_parameters.frames_print_debug:
+            if self.config_parameters.debug_mode:
                 global_motion_vec, frame_anchor_p, frame_motion_field, frame_global_motion_vector = block_matching.step(anchor, target)
                 
                 global_motion_vectors.append(global_motion_vec)
