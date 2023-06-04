@@ -1,7 +1,8 @@
+from fastapi import WebSocket, WebSocketDisconnect
 from tqdm import tqdm
 from .block_matching import BlockMatching
 from config.config_video import ConfigVideoParameters
-
+from src.request_handler.json_encoder import init_motion_estimation_json, update_step_json
 class MotionEstimation:
     def __init__(self, config_parameters: ConfigVideoParameters):
         self.config_parameters = config_parameters
@@ -15,16 +16,20 @@ class MotionEstimation:
         
         return None, None, None, None
 
-    def video_processing(self, frames):
-        print("Motion Estimation (Block Matching - Three Step Search) processing...")
-        
+    async def video_processing(self, frames, websocket: WebSocket):
+        message = "Motion Estimation (Block Matching - Three Step Search) processing..."
+        print(message)
+        await websocket.send_json(init_motion_estimation_json(message))
+
         global_motion_vectors = []
         frame_anchor_p_vec = []
         frame_motion_field_vec = []
         frame_global_motion_vec = []
         block_matching = BlockMatching(self.config_parameters)
         
-        for f in tqdm(range(len(frames) - 1)):
+        _range = range(len(frames) - 1)
+        total = _range[-1]
+        for f in tqdm(_range):
             anchor =  frames[f]
             target = frames[f + 1]
 
@@ -39,5 +44,11 @@ class MotionEstimation:
             else:
                 global_motion_vec, _, _, _ = block_matching.step(anchor, target)
                 global_motion_vectors.append(global_motion_vec)
+        
+            await websocket.send_json(update_step_json(f, total))
+            try:
+                await websocket.receive_text()
+            except WebSocketDisconnect:              
+                raise
 
         return global_motion_vectors, frame_anchor_p_vec, frame_motion_field_vec, frame_global_motion_vec

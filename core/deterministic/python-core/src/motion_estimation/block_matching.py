@@ -37,7 +37,6 @@ class BlockMatching:
 
     def frame2blocks(self):
         """Divides the frame matrix into block objects."""
-
         (H,W) = self.anchor_shape 
         (sizeH,sizeW) = self.config_parameters.block_size
 

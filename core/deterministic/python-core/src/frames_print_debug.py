@@ -1,7 +1,8 @@
 import cv2
+from fastapi import WebSocket, WebSocketDisconnect
 import numpy as np
 from tqdm import tqdm
-
+from src.request_handler.json_encoder import init_video_writing_json, update_step_json
 class FramesPrintDebug:
     def __init__(self):
         pass
@@ -36,11 +37,28 @@ class FramesPrintDebug:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def write_video(self, global_motion_vectors, video_frames, third_quadrant, fourth_quadrant, third_quadrant_title, fourth_quadrant_title, window_title, path, fps, second_override, second_quadrant, gray=False):
-        print(f"Writing video with {third_quadrant_title} and {fourth_quadrant_title}...")
+    async def write_video(self, 
+                    global_motion_vectors, 
+                    video_frames, 
+                    third_quadrant, 
+                    fourth_quadrant, 
+                    third_quadrant_title, 
+                    fourth_quadrant_title, 
+                    window_title, 
+                    path, 
+                    fps, 
+                    second_override, 
+                    second_quadrant, 
+                    gray=False,
+                    websocket: WebSocket=None):
+        
+        message = f"Writing video with {third_quadrant_title} and {fourth_quadrant_title}..."
+        print(message)
+        await websocket.send_json(init_video_writing_json(message))
 
         frames_out = []
-        for f in tqdm(range(len(video_frames) - 1)):
+        total = len(video_frames)
+        for f in tqdm(range(total - 2)):
             anchor = video_frames[f]
             target = second_quadrant[f] if second_override else video_frames
             out = self.visualize_single_gray_frame(
@@ -63,6 +81,11 @@ class FramesPrintDebug:
                     f
                 )
             frames_out.append(out)
+            await websocket.send_json(update_step_json(f, total))
+            try:
+                await websocket.receive_text()
+            except WebSocketDisconnect:              
+                raise
 
         self.write(frames_out, path, fps)
 

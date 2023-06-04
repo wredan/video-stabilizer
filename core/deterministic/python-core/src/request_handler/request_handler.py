@@ -2,46 +2,42 @@ import hashlib
 import os
 import re
 import uuid
-from fastapi import WebSocket, UploadFile, Request
+from fastapi import WebSocket, UploadFile, Request, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from starlette.websockets import WebSocketState
 from src.video_processing import VideoProcessing
 from config.config_video import ConfigVideoParameters
-from .json_encoder import cod_error_file_processing_JSON, cod_error_filename_JSON, cod_file_processed_JSON, cod_file_uploaded_JSON, cod_error_uploading_file_JSON
-from .utils import get_file_extension
+from .json_encoder import cod_error_file_JSON, cod_error_file_processing_JSON, cod_error_filename_JSON, cod_error_uploading_file_JSON, cod_file_processed_JSON, cod_file_uploaded_JSON
+from .utils import create_in_dir_from_client_address, create_out_dir_from_client_address, get_file_ext, get_stabilization_parameters, is_valid_file, is_valid_filename
 import json
 import shutil
 
 # region
 
 async def upload_file_handler(request: Request, filename: str, file: UploadFile):
+    
+    if not is_valid_file(filename):   
+        return JSONResponse(status_code=400, content=cod_error_file_JSON(filename))
+    
     try:
-        extension = get_file_extension(filename)
+        ext = get_file_ext(filename)
     except ValueError as e:
         print(str(e))
-        return cod_error_uploading_file_JSON(e)
+        return JSONResponse(status_code=400, content=cod_error_uploading_file_JSON(str(e))) 
     
     client_address = create_out_dir_from_client_address(request)
-    unique_name, input_path = create_in_dir_from_client_address(extension, client_address)
+    unique_name, input_path = create_in_dir_from_client_address(get_file_ext(filename), client_address)
 
-    with open(input_path, 'wb') as f:
-        f.write(await file.read())
+    try:
+        with open(input_path, 'wb') as f:
+            f.write(await file.read())
+    except Exception as e:
+        print(e)
+        return JSONResponse(status_code=500, content=cod_error_uploading_file_JSON())
     print(" > Uploaded video saved at: " + input_path)
-    response = cod_file_uploaded_JSON(filename=unique_name + "." + extension)
-    print(" < ", response)
+    response = JSONResponse(status_code=200, content=cod_file_uploaded_JSON(filename=unique_name + "." + ext))
+    print(" < ", response.body)
     return response
-
-def create_in_dir_from_client_address(extension, client_address):
-    unique_name = str(uuid.uuid4())
-    path = os.path.join("data", "files", "input", client_address, unique_name + "." + extension)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    return unique_name,path
-
-def create_out_dir_from_client_address(request: Request):
-    client_address = hashlib.sha256(request.client.host.encode()).hexdigest()
-    output_dir_path = os.path.join("data", "files", "output", client_address)
-    os.makedirs(output_dir_path, exist_ok=True)
-    return client_address
 
 def download_file_handler(request: Request, filename: str):
     try:
@@ -55,14 +51,17 @@ def download_file_handler(request: Request, filename: str):
 def delete_downloaded_file(request: Request):
     try:
         client_dir = hashlib.sha256(request.client.host.encode()).hexdigest()
-        output_path = os.path.join("data", "files", "output", client_dir)
-        input_path = os.path.join("data", "files", "input", client_dir)
-        shutil.rmtree(output_path, ignore_errors=True)
-        shutil.rmtree(input_path, ignore_errors=True)
+        delete_client_dir(client_dir)
         print(" < Deleted dir: " + client_dir)
         return JSONResponse(status_code=200, content={"code" : "client_dir_deleted"})
     except FileNotFoundError:
         return JSONResponse(status_code=404, content={"code" : "file_not_found", "error": "File not found"})
+
+def delete_client_dir(client_dir):    
+    output_path = os.path.join("data", "files", "output", client_dir)
+    input_path = os.path.join("data", "files", "input", client_dir)
+    shutil.rmtree(output_path, ignore_errors=True)
+    shutil.rmtree(input_path, ignore_errors=True)
 
 # endregion
 
@@ -77,7 +76,7 @@ async def websocket_handler(websocket: WebSocket):
             print(f"Filename: {filename}")
             if(is_valid_filename(filename)):    
                 client_dir = hashlib.sha256(websocket.client.host.encode()).hexdigest()
-                proc_file_name = process_video(filename, client_dir, data)
+                proc_file_name = await process_video(filename, client_dir, data, websocket)
                 response = cod_file_processed_JSON(proc_file_name)
                 print(" < ", response)
                 await websocket.send_json(response)
@@ -86,23 +85,15 @@ async def websocket_handler(websocket: WebSocket):
                 print(" < ", response)
                 await websocket.send_json(response)
                 await websocket.close()
-    except Exception as e:
-        print("------------------- ERROR --------------------")
-        print(e)
-        if websocket.application_state != WebSocketState.DISCONNECTED:
-            response = cod_error_file_processing_JSON()
-            await websocket.send_json(response)
-            await websocket.close()
+    except WebSocketDisconnect:
+        print("Client disconnected during video processing.")
+        delete_client_dir(client_dir)
+    # except Exception as e:
+    #     print("------------------- ERROR --------------------")
+    #     print(e)
+    #     delete_client_dir(client_dir)
 
-def check_filename(filename: str):
-    filename.split('.')
-
-
-def is_valid_filename(filename):
-    pattern = r'^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}\.(avi|mp4|MOV)$'
-    return re.match(pattern, filename) is not None
-
-def process_video(video_name: str, client_dir: str, data = None):
+async def process_video(video_name: str, client_dir: str, data = None, websocket: WebSocket = None):
     config_parameters = ConfigVideoParameters()
     if data is not None:
         block_size, search_range, filter_intensity, crop_frames = get_stabilization_parameters(data, config_parameters)
@@ -115,16 +106,12 @@ def process_video(video_name: str, client_dir: str, data = None):
 
     video_processing = VideoProcessing(video_name= video_name,
                                        client_dir=client_dir,
-                                       config_parameters=config_parameters)
-    file_name = video_processing.run()
+                                       config_parameters=config_parameters,
+                                       websocket= websocket)
+    
+    try:
+        file_name = await video_processing.run()
+    except WebSocketDisconnect:
+       raise
     return file_name
-
-def get_stabilization_parameters(data, config_parameters: ConfigVideoParameters):
-    stabilization_parameters = data.get('data', {}).get('stabilization_parameters', {})
-    block_size = stabilization_parameters.get('block_size', config_parameters.block_size)
-    search_range = stabilization_parameters.get('search_range', config_parameters.search_range)
-    filter_intensity = stabilization_parameters.get('filter_intensity', config_parameters.filter_intensity)
-    crop_frames = stabilization_parameters.get('crop_frames', config_parameters.crop_frames)
-
-    return block_size, search_range, filter_intensity, crop_frames
 

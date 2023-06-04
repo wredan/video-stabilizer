@@ -1,25 +1,37 @@
 import cv2
+from fastapi import WebSocket, WebSocketDisconnect
 import numpy as np
-
+from tqdm import tqdm
+from src.request_handler.json_encoder import init_frames_shift_json, init_frames_cropping_json, update_step_json
 class PostProcessing:
 
     def __init__(self) -> None:
         pass
 
-    def shift_frames(self, frames, global_correct_motion_vectors):
+    async def shift_frames(self, frames, global_correct_motion_vectors, websocket: WebSocket):
         """
         Shifts each frame according to the corresponding global motion correction vector.
         Uses the OpenCV function cv2.warpAffine for the actual shifting.
         """
+        message = "Shifting frames..."
+        print(message)
+        await websocket.send_json(init_frames_shift_json(message))
         shifted_frames = []
-        for frame, correction_vector in zip(frames, global_correct_motion_vectors):
+        total = len(frames)
+        for i, (frame, correction_vector) in tqdm(enumerate(zip(frames, global_correct_motion_vectors))):
             M = np.float32([[1, 0, correction_vector[0]], [0, 1, correction_vector[1]]])
             shifted_frame = cv2.warpAffine(frame, M, (frame.shape[1], frame.shape[0]))
             shifted_frames.append(shifted_frame)
+
+            await websocket.send_json(update_step_json(i, total))
+            try:
+                await websocket.receive_text()
+            except WebSocketDisconnect:              
+                raise
         return shifted_frames
 
 
-    def crop_frames(self, frames, max_shift = None, global_correct_motion_vectors = None):
+    async def crop_frames(self, frames, max_shift = None, global_correct_motion_vectors = None, websocket: WebSocket = None):
         """
         Crops each frame to remove the black borders created due to shifting.
         """
@@ -30,7 +42,12 @@ class PostProcessing:
                             for correction_vector in global_correct_motion_vectors)            
             self.max_shift = max_shift
 
-        for frame in frames:
+        message = "Cropping frames..."
+        print(message)
+        await websocket.send_json(init_frames_cropping_json(message))
+
+        total = len(frames)
+        for i, frame in tqdm(enumerate(frames)):
             start_x = int(max_shift)
             start_y = int(max_shift)
             end_x = frame.shape[1] - int(max_shift)
@@ -38,5 +55,11 @@ class PostProcessing:
             cropped_frame = frame[start_y:end_y, start_x:end_x]
 
             cropped_frames.append(cropped_frame)
+
+            await websocket.send_json(update_step_json(i, total))
+            try:
+                await websocket.receive_text()
+            except WebSocketDisconnect:              
+                raise
 
         return cropped_frames

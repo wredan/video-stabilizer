@@ -1,8 +1,10 @@
 import os
+from fastapi import WebSocket
 import numpy as np
 from scipy import ndimage
 from config.config_video import ConfigVideoParameters
 import src.utils as utils
+from src.request_handler.json_encoder import init_frame_position_smoothing_json
 class FramePositionSmoothing:
 
     def __init__(self, config_parameters: ConfigVideoParameters, client_dir: str) -> None:
@@ -25,7 +27,10 @@ class FramePositionSmoothing:
         inverse_filtered_data = np.column_stack((inverse_filtered_data_x, inverse_filtered_data_y))
         return inverse_filtered_data
 
-    def global_correction_motion_vectors(self, global_motion_vectors):
+    async def global_correction_motion_vectors(self, global_motion_vectors, websocket: WebSocket):
+        message = "Frame Position Smoothing running..."
+        print(message)
+        await websocket.send_json(init_frame_position_smoothing_json(message))
         # Step 1: Calculate the accumulated motion vectors
         accumulated_motion = self.get_accumulated_motion_vec(global_motion_vectors)
 

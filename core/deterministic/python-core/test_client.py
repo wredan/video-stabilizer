@@ -6,47 +6,59 @@ import requests
 import json
 
 async def send_file():
-    # Connessione al server WebSocket
-    async with websockets.connect('ws://localhost:8000/ws') as websocket:
         
-        # Invio del file tramite HTTP
+        # Sending file video over HTTP
         print(" > UPLOADING FILE")
-        with open('./data/input/unstable/0.mp4', 'rb') as f:
+        with open('./data/input/unstable/0.avi', 'rb') as f:
             response = requests.put('http://localhost:8000/upload/0.mp4', files={'file': f})
         
         response_data = json.loads(response.content)
         print(f" < {response_data}")
-        if response_data.get('code') == 'file_uploaded':
-            filename = response_data.get('data', {}).get('filename')
-            print(" > SENDING CODE: start_processing for file " + filename)
-            
-            # Notifica al server che il trasferimento del file è completo
-            await websocket.send(cod_file_uploaded_JSON(filename))
-            
-            # Attesa della risposta del server
-            response = await websocket.recv()
-            print(f" < {response}")
 
-            # Parse the response
-            response_data = json.loads(response)
-            if response_data.get('code') == 'file_processed_success':
+        # Connecting to the WebSocket
+        if response_data.get('code') == 'file_uploaded':
+            async with websockets.connect('ws://localhost:8000/ws') as websocket:
                 filename = response_data.get('data', {}).get('filename')
-                if filename:
-                    # Download the processed file
+                print(" > SENDING CODE: start_processing for file " + filename)
+                
+                # Sending start_processing for file to the server
+                await websocket.send(cod_file_uploaded_JSON(filename))
+                
+                # Waiting for server start_processing message
+                response = await websocket.recv()
+                print(f" < {response}")
+                code = ""
+
+                # Getting server updates for long run task
+                while True:
+                    response = await websocket.recv()
+                    response_data = json.loads(response)
+                    code = response_data.get('code')
+                    if code == "file_processed_success":
+                        break
+                    elif code == "update_step":
+                        print(" < " + str(response_data.get('data', {}).get('step')) + "/" + str(response_data.get('data', {}).get('total')))
+                        await websocket.send("")
+                    else:
+                        print(f" < {response}")
+                
+                # File processed, request download
+                filename = response_data.get('data', {}).get('filename')
+                if filename:                    
                     print(" > DOWNLOADING FILE: " + filename)
                     response = requests.get(f'http://localhost:8000/download/{filename}')
+                    
                     # Save the file
-                    downloaded_file_path = f'./{filename}'
-
                     with open(f'./{filename}', 'wb') as f:
                         f.write(response.content)
                     print(f" < File {filename} downloaded successfully!")
 
-                    print(f" > Requesting files delete") 
-                    response = requests.get(f'http://localhost:8000/delete-files')
-                    print(f" < {response.content}")
-            else:
-                print(" <", response_data)
+                    # Requesting to delete processed file
+                    # print(f" > Requesting files delete") 
+                    # response = requests.get(f'http://localhost:8000/delete-files')
+                    # print(f" < {response.content}")
+                else:
+                    print(" <", response_data)
         else:
             print(" <", response_data)
 
@@ -59,6 +71,7 @@ def cod_file_uploaded_JSON(filename = None):
                 "block_size": (64, 64), 
                 "search_range": 16, 
                 "filter_intensity": 80, 
+                "crop_frames": False
             }
         }
     }
