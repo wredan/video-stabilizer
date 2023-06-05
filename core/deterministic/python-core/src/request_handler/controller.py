@@ -1,8 +1,5 @@
-import asyncio
-from fastapi import FastAPI, Request, WebSocket, UploadFile, File, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, UploadFile, File
 import src.request_handler.request_handler as RequestHandler
-from .json_encoder import cod_error_file_processing_JSON
-from starlette.websockets import WebSocketState
 
 app = FastAPI()
 

@@ -2,7 +2,7 @@ import cv2
 from fastapi import WebSocket, WebSocketDisconnect
 import numpy as np
 from tqdm import tqdm
-from src.request_handler.json_encoder import init_video_writing_json, update_step_json
+from src.request_handler.json_encoder import JsonEncoder
 class FramesPrintDebug:
     def __init__(self):
         pass
@@ -54,7 +54,7 @@ class FramesPrintDebug:
         
         message = f"Writing video with {third_quadrant_title} and {fourth_quadrant_title}..."
         print(message)
-        await websocket.send_json(init_video_writing_json(message))
+        await websocket.send_json(JsonEncoder.init_video_writing_json(message))
 
         frames_out = []
         total = len(video_frames)
@@ -81,7 +81,7 @@ class FramesPrintDebug:
                     f
                 )
             frames_out.append(out)
-            await websocket.send_json(update_step_json(f, total))
+            await websocket.send_json(JsonEncoder.update_step_json(f, total))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              

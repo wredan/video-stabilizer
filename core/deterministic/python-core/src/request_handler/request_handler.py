@@ -4,10 +4,9 @@ import re
 import uuid
 from fastapi import WebSocket, UploadFile, Request, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
-from starlette.websockets import WebSocketState
 from src.video_processing import VideoProcessing
+from src.request_handler.json_encoder import JsonEncoder
 from config.config_video import ConfigVideoParameters
-from .json_encoder import cod_error_file_JSON, cod_error_file_processing_JSON, cod_error_filename_JSON, cod_error_uploading_file_JSON, cod_file_processed_JSON, cod_file_uploaded_JSON
 from .utils import create_in_dir_from_client_address, create_out_dir_from_client_address, get_file_ext, get_stabilization_parameters, is_valid_file, is_valid_filename
 import json
 import shutil
@@ -17,13 +16,13 @@ import shutil
 async def upload_file_handler(request: Request, filename: str, file: UploadFile):
     
     if not is_valid_file(filename):   
-        return JSONResponse(status_code=400, content=cod_error_file_JSON(filename))
+        return JSONResponse(status_code=400, content=JsonEncoder.cod_error_file_JSON(filename))
     
     try:
         ext = get_file_ext(filename)
     except ValueError as e:
         print(str(e))
-        return JSONResponse(status_code=400, content=cod_error_uploading_file_JSON(str(e))) 
+        return JSONResponse(status_code=400, content=JsonEncoder.cod_error_uploading_file_JSON(str(e))) 
     
     client_address = create_out_dir_from_client_address(request)
     unique_name, input_path = create_in_dir_from_client_address(get_file_ext(filename), client_address)
@@ -33,9 +32,9 @@ async def upload_file_handler(request: Request, filename: str, file: UploadFile)
             f.write(await file.read())
     except Exception as e:
         print(e)
-        return JSONResponse(status_code=500, content=cod_error_uploading_file_JSON())
+        return JSONResponse(status_code=500, content=JsonEncoder.cod_error_uploading_file_JSON())
     print(" > Uploaded video saved at: " + input_path)
-    response = JSONResponse(status_code=200, content=cod_file_uploaded_JSON(filename=unique_name + "." + ext))
+    response = JSONResponse(status_code=200, content=JsonEncoder.cod_file_uploaded_JSON(filename=unique_name + "." + ext))
     print(" < ", response.body)
     return response
 
@@ -77,11 +76,11 @@ async def websocket_handler(websocket: WebSocket):
             if(is_valid_filename(filename)):    
                 client_dir = hashlib.sha256(websocket.client.host.encode()).hexdigest()
                 proc_file_name = await process_video(filename, client_dir, data, websocket)
-                response = cod_file_processed_JSON(proc_file_name)
+                response = JsonEncoder.cod_file_processed_JSON(proc_file_name)
                 print(" < ", response)
                 await websocket.send_json(response)
             else:
-                response = cod_error_filename_JSON(filename)
+                response = JsonEncoder.cod_error_filename_JSON(filename)
                 print(" < ", response)
                 await websocket.send_json(response)
                 await websocket.close()

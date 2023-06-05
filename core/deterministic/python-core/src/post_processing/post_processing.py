@@ -2,7 +2,7 @@ import cv2
 from fastapi import WebSocket, WebSocketDisconnect
 import numpy as np
 from tqdm import tqdm
-from src.request_handler.json_encoder import init_frames_shift_json, init_frames_cropping_json, update_step_json
+from src.request_handler.json_encoder import JsonEncoder
 class PostProcessing:
 
     def __init__(self) -> None:
@@ -15,7 +15,7 @@ class PostProcessing:
         """
         message = "Shifting frames..."
         print(message)
-        await websocket.send_json(init_frames_shift_json(message))
+        await websocket.send_json(JsonEncoder.init_frames_shift_json(message))
         shifted_frames = []
         total = len(frames)
         for i, (frame, correction_vector) in tqdm(enumerate(zip(frames, global_correct_motion_vectors))):
@@ -23,7 +23,7 @@ class PostProcessing:
             shifted_frame = cv2.warpAffine(frame, M, (frame.shape[1], frame.shape[0]))
             shifted_frames.append(shifted_frame)
 
-            await websocket.send_json(update_step_json(i, total))
+            await websocket.send_json(JsonEncoder.update_step_json(i, total))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              
@@ -44,7 +44,7 @@ class PostProcessing:
 
         message = "Cropping frames..."
         print(message)
-        await websocket.send_json(init_frames_cropping_json(message))
+        await websocket.send_json(JsonEncoder.init_frames_cropping_json(message))
 
         total = len(frames)
         for i, frame in tqdm(enumerate(frames)):
@@ -56,7 +56,7 @@ class PostProcessing:
 
             cropped_frames.append(cropped_frame)
 
-            await websocket.send_json(update_step_json(i, total))
+            await websocket.send_json(JsonEncoder.update_step_json(i, total))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              
