@@ -22,7 +22,7 @@ async def send_file():
                 print(" > SENDING CODE: start_processing for file " + filename)
                 
                 # Sending start_processing for file to the server
-                await websocket.send(cod_file_uploaded_JSON(filename))
+                await websocket.send(file_uploaded_JSON(filename))
                 
                 # Waiting for server start_processing message
                 response = await websocket.recv()
@@ -62,7 +62,7 @@ async def send_file():
         else:
             print(" <", response_data)
 
-def cod_file_uploaded_JSON(filename = None):
+def file_uploaded_JSON(filename = None):
     json_string = {
         "code": "start_processing",
         "data": {
