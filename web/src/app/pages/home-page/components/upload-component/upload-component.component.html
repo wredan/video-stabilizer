@@ -1,0 +1,24 @@
+<div class="upload-container">
+    <input type="file" (change)="onFileChange($event)" accept="video/*">
+  
+    <video *ngIf="videoUrl" controls [src]="videoUrl"></video>
+  
+    <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
+      <select formControlName="blockSize">
+        <option value="32">32</option>
+        <option value="64">64</option>
+        <option value="128">128</option>
+        <option value="256">256</option>
+        <option value="512">512</option>
+      </select>
+  
+      <input type="number" formControlName="searchRange" min="2" max="32">
+  
+      <input type="range" formControlName="filterIntensity" min="0" max="100">
+  
+      <input type="checkbox" formControlName="cropFrames">
+  
+      <button type="submit">Upload</button>
+    </form>
+  </div>
+  
