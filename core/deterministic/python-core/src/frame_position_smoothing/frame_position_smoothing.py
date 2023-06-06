@@ -36,16 +36,14 @@ class FramePositionSmoothing:
 
         # Step 2: apply fft, LPF, and inverse fft
         inverse_filtered_data = self._gaussian_filtering(accumulated_motion)
-        if self.config_parameters.debug_mode:
-            utils.plot_absolute_frame_position(accumulated_motion, 
+        utils.plot_absolute_frame_position(accumulated_motion, 
                                             inverse_filtered_data, 
                                             os.path.join(self.config_parameters.base_path, self.client_dir, "absolute_frame_position.png"),
                                             self.config_parameters.plot_scale_factor)
 
         # Step 3: Calculate the correction vectors
         global_corrected_motion_vectors = [ self._correction_vector(acc_motion, inv_filtered_data) for acc_motion, inv_filtered_data in zip(accumulated_motion, inverse_filtered_data)]
-        if self.config_parameters.debug_mode:
-            utils.plot_global_corrected_motion(global_corrected_motion_vectors, 
+        utils.plot_global_corrected_motion(global_corrected_motion_vectors, 
                                            os.path.join(self.config_parameters.base_path, self.client_dir, "global_corrected_motion_vectors.png"),
                                            self.config_parameters.plot_scale_factor)
 
