@@ -42,7 +42,7 @@ export class DownloadComponent implements OnInit {
           // link.download = this.filename!;
           // link.click();
           // window.URL.revokeObjectURL(this.videoUrl);
-          this.deleteFiles();
+         this.deleteFiles();
         },
         error: err => {
           console.error('Download error:', err);

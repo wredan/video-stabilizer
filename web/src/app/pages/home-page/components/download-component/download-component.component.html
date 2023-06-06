@@ -2,6 +2,9 @@
     <h2>{{ title }}<a *ngIf="filename" [href]="videoUrl" class="underline" download="{{filename}}"> Download</a></h2>
 </div>
 
-<div *ngIf="videoUrl">
+<div *ngIf="videoUrl; else loading" class="flex flex-row items-center justify-center">
     <video controls [src]="videoUrl" class="w-full rounded-md">Browser does not support video tag.</video>
 </div>
+<ng-template #loading>
+    <mat-spinner diameter="25"></mat-spinner>
+</ng-template>

@@ -19,6 +19,10 @@ export class VideoService {
     return this.http.get(`${this.apiUrl}/download/${filename}`, { responseType: 'blob' });
   }
 
+  downloadImage(filename: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/download/${filename}`, { responseType: 'blob' });
+  }
+
   deleteFiles(): Observable<any> {
     return this.http.get(`${this.apiUrl}/delete-files`);
   }

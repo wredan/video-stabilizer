@@ -2,17 +2,20 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
-
 import { AppRoutingModule } from './app-routing.module';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 import { AppComponent } from './app.component';
 import { HomeComponent } from './pages/home-page/home-page.component';
 import { UploadComponent } from './pages/home-page/components/upload-component/upload-component.component';
 import { ProcessingComponent } from './pages/home-page/components/processing-component/processing-component.component';
+import { StatsDownloadComponent } from './pages/home-page/components/stats-download/stats-download.component';
+import { FooterComponent } from './pages/home-page/components/footer/footer.component';
+import { ImageDialogComponent } from './pages/home-page/components/image-dialog/image-dialog.component';
+import { DownloadComponent } from './pages/home-page/components/download-component/download-component.component';
 
 import { VideoService } from './services/video-service/video-service.service';
 import { WebSocketService } from './services/websocket-service//web-socket.service';
-import { DownloadComponent } from './pages/home-page/components/download-component/download-component.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -23,7 +26,9 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSliderModule } from '@angular/material/slider';
 import {MatIconModule} from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { StatsDownloadComponent } from './pages/home-page/components/stats-download/stats-download.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialogModule } from '@angular/material/dialog';
+
 
 @NgModule({
   declarations: [
@@ -33,6 +38,8 @@ import { StatsDownloadComponent } from './pages/home-page/components/stats-downl
     ProcessingComponent,
     DownloadComponent,
     StatsDownloadComponent,
+    FooterComponent,
+    ImageDialogComponent,
   ],
   imports: [
     BrowserModule,
@@ -48,7 +55,9 @@ import { StatsDownloadComponent } from './pages/home-page/components/stats-downl
     MatSidenavModule,
     MatSliderModule,
     MatIconModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
+    MatDialogModule
   ],
   providers: [VideoService, WebSocketService],
   bootstrap: [AppComponent]

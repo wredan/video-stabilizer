@@ -1,7 +1,8 @@
-<div class="upload-container flex flex-col md:flex-row items-stretch py-4">
+<div class="upload-container flex flex-col md:flex-row items-stretch my-8">
     
   <div class="settings-card bg-white sm:m-3 md:m-0 md:w-1/6 mb-4 md:mb-0 overflow-hidden shadow-lg md:rounded-l-none rounded-lg md:static">
-    <div class="sm:p-6 bg-white">
+    <div class="sm:px-6 sm:py-8 bg-white">
+      <h2>Parameters</h2>
       <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
         <mat-form-field class="w-full mb-4">
           <mat-label>Block Size</mat-label>
@@ -41,22 +42,22 @@
 
   </div>
 
-  <div class="flex flex-row flex-1 items-center justify-center w-full">
-    <div *ngIf="!videoFile" class="drop-area flex-1 m-12 h-full border-2 border-dashed border-gray-200 rounded-md transition-colors duration-500 flex items-center justify-center"
+  <div class="flex flex-row flex-1 items-center justify-center w-full shadow-lg bg-white md:mx-10 p-3 rounded-lg">
+    <div *ngIf="!videoFile" class="drop-area w-5/6 h-5/6 border-2 border-dashed border-gray-200 rounded-md transition-colors duration-500 flex items-center justify-center"
     (dragover)="onDragOver($event)"
     (drop)="onDrop($event)"
     (dragleave)="onDragLeave($event)"
     [class.bg-blue-50]="draggingOver">
     <input #fileInput id="file" type="file" onclick="this.value = null" (change)="onInputFileChange($event)" accept="video/*" class="w-full" hidden>
     <div class="text-center">
-      <p class="text-gray-500" *ngIf="!draggingOver">Drag and drop your file here or 
+      <p class="text-gray-500" *ngIf="!draggingOver">Drag and drop your video file here or 
         <button class="text-amber-600 underline" (click)="fileInput.click()">select a file</button></p>
       <p class="text-blue-500" *ngIf="draggingOver">Drop your file!</p>
     </div>
   </div>
   
   
-    <div class="md:w-3/4 w-full h-full flex flex-col items-center justify-center ps-4" *ngIf="videoFile">
+    <div class="md:w-3/4 w-full h-full flex flex-col items-center justify-center py-4" *ngIf="videoFile">
       <h2>Uploaded video</h2>
       <div>
         <video controls [src]="videoUrl" class="w-full rounded-md">Browser does not support video tag.</video>
