@@ -13,7 +13,6 @@ export class UploadComponent {
   videoUrl: string | undefined;
   draggingOver = false;
   value: number = 40;
-  isCardClosed = false;
 
   uploadForm = this.formBuilder.group({
     blockSize: ['64', Validators.required],
@@ -25,7 +24,7 @@ export class UploadComponent {
   constructor(
     private formBuilder: FormBuilder, 
     private videoService: VideoService,
-    private webSocketService: WebSocketService) { }
+    public webSocketService: WebSocketService) { }
 
   onSubmit() {
     if (this.uploadForm.valid && this.videoFile) {
@@ -129,7 +128,4 @@ export class UploadComponent {
     return value.toString();
   }
 
-  toggleCard() {
-    this.isCardClosed = !this.isCardClosed;
-  }
 }

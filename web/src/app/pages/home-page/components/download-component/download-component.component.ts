@@ -12,6 +12,7 @@ export class DownloadComponent implements OnInit {
   filename: string | null = null;
   videoUrl: string | null = null; 
   private subscription: Subscription | undefined;
+  title: string | undefined = "Processing the video...";
   
   constructor(private videoService: VideoService, private webSocketService: WebSocketService) { }
 
@@ -19,6 +20,7 @@ export class DownloadComponent implements OnInit {
     this.subscription = this.webSocketService.receive().subscribe({
       next: message => {
         if (message.state === 'file_processed_success') {
+          this.title = "Stabilized video ready - "
           this.filename = message.data.filename;
           this.downloadFile();
           this.subscription!.unsubscribe();

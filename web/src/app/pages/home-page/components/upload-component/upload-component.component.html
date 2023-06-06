@@ -1,7 +1,7 @@
-<div class="upload-container flex flex-col md:flex-row items-center justify-center min-h-full bg-gray-100 p-4">
-  
-  <div [ngClass]="{'settings-card-closed': isCardClosed}" class="settings-card md:w-1/4 w-full mb-4 md:mb-0 overflow-hidden shadow-lg rounded-lg relative md:static transition-all duration-500 ease-in-out">
-    <div class="px-6 py-8 sm:p-10 bg-white">
+<div class="upload-container flex flex-col md:flex-row items-stretch py-4">
+    
+  <div class="settings-card bg-white sm:m-3 md:m-0 md:w-1/6 mb-4 md:mb-0 overflow-hidden shadow-lg md:rounded-l-none rounded-lg md:static">
+    <div class="sm:p-6 bg-white">
       <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
         <mat-form-field class="w-full mb-4">
           <mat-label>Block Size</mat-label>
@@ -38,25 +38,35 @@
         </div>
       </form>
     </div>
-    <div (click)="toggleCard()" class="absolute top-1/2 right-0 bg-white transform -translate-y-1/2 w-8 h-8 m-2 rounded-full cursor-pointer flex items-center justify-center transition-all duration-500 ease-in-out">
-      <mat-icon>{{ isCardClosed ? 'arrow_forward_ios' : 'arrow_back_ios' }}</mat-icon>
+
+  </div>
+
+  <div class="flex flex-row flex-1 items-center justify-center w-full">
+    <div *ngIf="!videoFile" class="drop-area flex-1 m-12 h-full border-2 border-dashed border-gray-200 rounded-md transition-colors duration-500 flex items-center justify-center"
+    (dragover)="onDragOver($event)"
+    (drop)="onDrop($event)"
+    (dragleave)="onDragLeave($event)"
+    [class.bg-blue-50]="draggingOver">
+    <input #fileInput id="file" type="file" onclick="this.value = null" (change)="onInputFileChange($event)" accept="video/*" class="w-full" hidden>
+    <div class="text-center">
+      <p class="text-gray-500" *ngIf="!draggingOver">Drag and drop your file here or 
+        <button class="text-amber-600 underline" (click)="fileInput.click()">select a file</button></p>
+      <p class="text-blue-500" *ngIf="draggingOver">Drop your file!</p>
     </div>
   </div>
   
   
-  <div *ngIf="!videoFile" class="drop-area relative md:w-3/4 w-full mb-4 md:mb-0 md:mx-4 min-h-full p-4 border-2 border-dashed border-gray-200 rounded-md transition-colors duration-300"
-    (dragover)="onDragOver($event)"
-    (drop)="onDrop($event)"
-    (dragleave)="onDragLeave($event)"
-    [class.bg-blue-100]="draggingOver">
-      <input #fileInput id="file" type="file" onclick="this.value = null" (change)="onInputFileChange($event)" accept="video/*" class="w-full" hidden>
-      <p class="text-center text-gray-500" *ngIf="!draggingOver">Drag and drop your file here or 
-        <button class="text-amber-600 underline" (click)="fileInput.click()">select a file</button></p>
-      <p class="text-center text-blue-500" *ngIf="draggingOver">Drop your file!</p>
+    <div class="md:w-3/4 w-full h-full flex flex-col items-center justify-center ps-4" *ngIf="videoFile">
+      <h2>Uploaded video</h2>
+      <div>
+        <video controls [src]="videoUrl" class="w-full rounded-md">Browser does not support video tag.</video>
+      </div>
+    </div>
+  
+    <div *ngIf="webSocketService.start_processing" class="md:w-3/4 w-full h-full flex flex-col items-center justify-center p-4">
+      <app-download-component></app-download-component>
+    </div>
   </div>
 
-  <div class="video-preview md:w-3/4 w-full" *ngIf="videoFile">
-    <video controls [src]="videoUrl" class="w-full" style="width: 480px;"></video>
-  </div>
   
 </div>

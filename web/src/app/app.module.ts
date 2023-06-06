@@ -23,6 +23,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSliderModule } from '@angular/material/slider';
 import {MatIconModule} from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { StatsDownloadComponent } from './pages/home-page/components/stats-download/stats-download.component';
 
 @NgModule({
   declarations: [
@@ -31,6 +32,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     UploadComponent,
     ProcessingComponent,
     DownloadComponent,
+    StatsDownloadComponent,
   ],
   imports: [
     BrowserModule,

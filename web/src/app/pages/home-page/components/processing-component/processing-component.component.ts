@@ -20,13 +20,14 @@ export class ProcessingComponent implements OnInit {
 
         let stage = this.stages.find(s => s.state === message.state);
 
+        if (message.state === 'file_processed_success') {
+          this.subscription!.unsubscribe();
+          stage!.message = "File has been processed successfully";
+        }
+
         if (!stage) {
           stage = { state: message.state, message: message.data.message, progress: 0, total: 0 };
           this.stages.push(stage);
-        }
-
-        if (message.state === 'file_processed_success') {
-          this.subscription!.unsubscribe();
         }
 
         if (message.data.total) {
