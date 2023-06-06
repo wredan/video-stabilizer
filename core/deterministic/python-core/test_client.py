@@ -9,14 +9,14 @@ async def send_file():
         
         # Sending file video over HTTP
         print(" > UPLOADING FILE")
-        with open('./data/input/unstable/0.avi', 'rb') as f:
-            response = requests.put('http://localhost:8000/upload/0.mp4', files={'file': f})
+        with open('./data/input/unstable/0.mp4', 'rb') as f:
+            response = requests.post('http://localhost:8000/upload/0.mp4', files={'file': f})
         
         response_data = json.loads(response.content)
         print(f" < {response_data}")
 
         # Connecting to the WebSocket
-        if response_data.get('code') == 'file_uploaded':
+        if response_data.get('state') == 'file_uploaded':
             async with websockets.connect('ws://localhost:8000/ws') as websocket:
                 filename = response_data.get('data', {}).get('filename')
                 print(" > SENDING CODE: start_processing for file " + filename)
@@ -33,7 +33,7 @@ async def send_file():
                 while True:
                     response = await websocket.recv()
                     response_data = json.loads(response)
-                    code = response_data.get('code')
+                    code = response_data.get('state')
                     if code == "file_processed_success":
                         break
                     elif code == "update_step":
@@ -64,11 +64,11 @@ async def send_file():
 
 def file_uploaded_JSON(filename = None):
     json_string = {
-        "code": "start_processing",
+        "state": "start_processing",
         "data": {
             "filename": filename,
             "stabilization_parameters": {
-                "block_size": (64, 64), 
+                "block_size": 64, 
                 "search_range": 16, 
                 "filter_intensity": 80, 
                 "crop_frames": False
