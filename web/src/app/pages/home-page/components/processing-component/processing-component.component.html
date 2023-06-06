@@ -1,1 +1,6 @@
-<p>processing-component works!</p>
+<div *ngFor="let stage of stages" class="px-12 py-1">
+    <p *ngIf="stage.message">Stage: {{ stage.message }}</p>
+    <div *ngIf="stage.progress && stage.progress > 0" class="pb-8">
+      <mat-progress-bar mode="determinate"  [value]="(stage.progress / stage.total) * 100"></mat-progress-bar>
+    </div>   
+</div>

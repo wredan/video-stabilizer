@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ProcessingComponentComponent } from './processing-component.component';
+import { ProcessingComponent } from './processing-component.component';
 
 describe('ProcessingComponentComponent', () => {
-  let component: ProcessingComponentComponent;
-  let fixture: ComponentFixture<ProcessingComponentComponent>;
+  let component: ProcessingComponent;
+  let fixture: ComponentFixture<ProcessingComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ProcessingComponentComponent]
+      declarations: [ProcessingComponent]
     });
-    fixture = TestBed.createComponent(ProcessingComponentComponent);
+    fixture = TestBed.createComponent(ProcessingComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

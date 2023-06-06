@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -7,9 +9,13 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 export class WebSocketService {
   private socket$: WebSocketSubject<any> | undefined;
 
-  public connect(url: string): void {
+  private webSocketUrl = environment.webSocketUrl;
+  
+  public start_processing = false
+
+  public connect(): void {
     if (!this.socket$ || this.socket$.closed) {
-      this.socket$ = webSocket(url);
+      this.socket$ = webSocket(this.webSocketUrl);
     }
   }
 
@@ -26,6 +32,10 @@ export class WebSocketService {
       this.socket$.complete();
     }
   }
+
+  public receive(): Observable<any> {
+    return this.messages$;
+  }  
 
   public get messages$() {
     return this.socket$!.asObservable();

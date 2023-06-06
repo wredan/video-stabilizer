@@ -1,24 +1,62 @@
-<div class="upload-container">
-    <input type="file" (change)="onFileChange($event)" accept="video/*">
+<div class="upload-container flex flex-col md:flex-row items-center justify-center min-h-full bg-gray-100 p-4">
   
-    <video *ngIf="videoUrl" controls [src]="videoUrl"></video>
+  <div [ngClass]="{'settings-card-closed': isCardClosed}" class="settings-card md:w-1/4 w-full mb-4 md:mb-0 overflow-hidden shadow-lg rounded-lg relative md:static transition-all duration-500 ease-in-out">
+    <div class="px-6 py-8 sm:p-10 bg-white">
+      <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
+        <mat-form-field class="w-full mb-4">
+          <mat-label>Block Size</mat-label>
+          <mat-select formControlName="blockSize">
+            <mat-option value="32">32</mat-option>
+            <mat-option value="64">64</mat-option>
+            <mat-option value="128">128</mat-option>
+            <mat-option value="256">256</mat-option>
+            <mat-option value="512">512</mat-option>
+          </mat-select>
+        </mat-form-field>
   
-    <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
-      <select formControlName="blockSize">
-        <option value="32">32</option>
-        <option value="64">64</option>
-        <option value="128">128</option>
-        <option value="256">256</option>
-        <option value="512">512</option>
-      </select>
+        <mat-form-field class="w-full mb-4">
+          <mat-label>Search Range</mat-label>
+          <input matInput type="number" formControlName="searchRange" min="2" max="32">
+        </mat-form-field>
   
-      <input type="number" formControlName="searchRange" min="2" max="32">
+        <div class="flex flex-col mb-4">
+          <mat-label class="mb-2">Filter Intensity</mat-label>
+          <div class="w-full">
+            <mat-slider formControlName="filterIntensity" ngDefaultControl min="0" max="100" step="1" thumbLabel [displayWith]="formatLabel" tickInterval="auto">
+              <input matSliderThumb>
+            </mat-slider>
+          </div>
+        </div>            
   
-      <input type="range" formControlName="filterIntensity" min="0" max="100">
+        <div class="flex items-center justify-center mb-4">
+          <mat-label class="mr-2">Crop Video</mat-label>
+          <mat-slide-toggle formControlName="cropFrames"></mat-slide-toggle>
+        </div>
   
-      <input type="checkbox" formControlName="cropFrames">
-  
-      <button type="submit">Upload</button>
-    </form>
+        <div class="flex justify-center mt-12">
+          <button mat-raised-button color="primary" type="submit">Upload</button>
+        </div>
+      </form>
+    </div>
+    <div (click)="toggleCard()" class="absolute top-1/2 right-0 bg-white transform -translate-y-1/2 w-8 h-8 m-2 rounded-full cursor-pointer flex items-center justify-center transition-all duration-500 ease-in-out">
+      <mat-icon>{{ isCardClosed ? 'arrow_forward_ios' : 'arrow_back_ios' }}</mat-icon>
+    </div>
   </div>
   
+  
+  <div *ngIf="!videoFile" class="drop-area relative md:w-3/4 w-full mb-4 md:mb-0 md:mx-4 min-h-full p-4 border-2 border-dashed border-gray-200 rounded-md transition-colors duration-300"
+    (dragover)="onDragOver($event)"
+    (drop)="onDrop($event)"
+    (dragleave)="onDragLeave($event)"
+    [class.bg-blue-100]="draggingOver">
+      <input #fileInput id="file" type="file" onclick="this.value = null" (change)="onInputFileChange($event)" accept="video/*" class="w-full" hidden>
+      <p class="text-center text-gray-500" *ngIf="!draggingOver">Drag and drop your file here or 
+        <button class="text-amber-600 underline" (click)="fileInput.click()">select a file</button></p>
+      <p class="text-center text-blue-500" *ngIf="draggingOver">Drop your file!</p>
+  </div>
+
+  <div class="video-preview md:w-3/4 w-full" *ngIf="videoFile">
+    <video controls [src]="videoUrl" class="w-full" style="width: 480px;"></video>
+  </div>
+  
+</div>

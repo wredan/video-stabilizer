@@ -1,0 +1,14 @@
+<div class="upload-container flex flex-col md:flex-row items-center justify-center min-h-full bg-gray-100 p-4">
+
+<div *ngIf="filename" >
+    <h2>Video scaricato con successo</h2>
+
+    <div class="video-preview md:w-3/4 w-full" *ngIf="videoUrl">
+        <video controls [src]="videoUrl" class="w-full" style="width: 480px;">Il tuo browser non supporta l'elemento video.</video>
+    </div>
+  
+    <a [href]="videoUrl" download="{{filename}}">Scarica video</a>
+  </div>
+
+</div>
+  

@@ -1,2 +1,17 @@
-<app-upload-component></app-upload-component>
-<app-processing-component></app-processing-component>
+<div class="flex flex-col items-center min-h-screen bg-gray-100 pt-4">
+    <h1 class="text-3xl font-bold underline mb-4 text-center">
+      Hello world!
+    </h1>
+    <p class="text-lg text-center mb-8">
+      Short explanation of what this app does.
+    </p>
+    <div class="w-full mx-auto">
+      <app-upload-component></app-upload-component>
+      <div *ngIf="webSocketService.start_processing">
+        <app-download-component></app-download-component>
+      </div>
+    </div>
+    <div *ngIf="webSocketService.start_processing" class="mt-8 w-full">
+      <app-processing-component></app-processing-component>
+    </div>
+</div>

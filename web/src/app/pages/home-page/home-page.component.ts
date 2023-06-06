@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { VideoService } from 'src/app/services/video-service/video-service.service';
+import { WebSocketService } from 'src/app/services/websocket-service/web-socket.service';
 
 @Component({
   selector: 'app-home-page',
@@ -7,4 +9,5 @@ import { Component } from '@angular/core';
 })
 export class HomeComponent {
 
+  constructor(public webSocketService: WebSocketService){}
 }
