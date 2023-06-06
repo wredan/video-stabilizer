@@ -1,7 +1,6 @@
 import hashlib
 import os
-import re
-import uuid
+from starlette.websockets import WebSocketState
 from fastapi import WebSocket, UploadFile, Request, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from src.video_processing import VideoProcessing
@@ -10,6 +9,7 @@ from config.config_video import ConfigVideoParameters
 from .utils import create_in_dir_from_client_address, create_out_dir_from_client_address, get_file_ext, get_stabilization_parameters, is_valid_file, is_valid_filename
 import json
 import shutil
+import traceback
 
 # region
 
@@ -68,8 +68,8 @@ async def websocket_handler(websocket: WebSocket):
     try:
         data = await websocket.receive_text()
         data = json.loads(data)
-
-        if 'code' in data and data['code'] == 'start_processing':
+        print(data)
+        if 'state' in data and data['state'] == 'start_processing':
             print("Got File, start processing...")
             filename = data.get('data', {}).get('filename')
             print(f"Filename: {filename}")
@@ -84,13 +84,16 @@ async def websocket_handler(websocket: WebSocket):
                 print(" < ", response)
                 await websocket.send_json(response)
                 await websocket.close()
-    except WebSocketDisconnect:
-        print("Client disconnected during video processing.")
+    except (WebSocketDisconnect, Exception) as e:
         delete_client_dir(client_dir)
-    # except Exception as e:
-    #     print("------------------- ERROR --------------------")
-    #     print(e)
-    #     delete_client_dir(client_dir)
+        if websocket.application_state != WebSocketState.DISCONNECTED:
+            response = JsonEncoder.error_file_processing_JSON()
+            await websocket.send_json(response)
+            await websocket.close()
+            print("An exception occurred:", str(e))
+            traceback.print_exc()
+        else:
+            print("Client disconnected during video processing.")
 
 async def process_video(video_name: str, client_dir: str, data = None, websocket: WebSocket = None):
     config_parameters = ConfigVideoParameters()

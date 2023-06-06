@@ -23,7 +23,7 @@ class PostProcessing:
             shifted_frame = cv2.warpAffine(frame, M, (frame.shape[1], frame.shape[0]))
             shifted_frames.append(shifted_frame)
 
-            await websocket.send_json(JsonEncoder.update_step_json(i, total))
+            await websocket.send_json(JsonEncoder.update_step_json("shifting", i, total))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              
@@ -56,7 +56,7 @@ class PostProcessing:
 
             cropped_frames.append(cropped_frame)
 
-            await websocket.send_json(JsonEncoder.update_step_json(i, total))
+            await websocket.send_json(JsonEncoder.update_step_json("cropping", i, total))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              

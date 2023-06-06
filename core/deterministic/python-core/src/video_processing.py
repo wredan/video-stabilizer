@@ -17,7 +17,6 @@ class VideoProcessing:
         self.websocket = websocket
         video_path = os.path.join(config_parameters.path_in, client_dir, video_name)
         self.video = Video(video_path)
-        self.video.read_frames()
         self.motion_estimation = MotionEstimation(self.config_parameters)
         self.smoothing = FramePositionSmoothing(self.config_parameters, client_dir=client_dir)
     
@@ -105,13 +104,14 @@ class VideoProcessing:
             path =  os.path.join(self.config_parameters.base_path, self.client_dir, self.config_parameters.path_out)
             file_name = self.config_parameters.path_out
         else:
-            path = os.path.join(self.config_parameters.base_path, self.client_dir, self.video_name)
-            file_name = self.video_name
+            file_name = self.video_name.split('.')[0] + ".mp4"
+            path = os.path.join(self.config_parameters.base_path, self.client_dir, file_name)
         
         await self.video.write(frames_out= frames, path= path, gray= self.config_parameters.gray, websocket= self.websocket)
         return file_name
     
     async def run(self):
+        await self.video.read_frames(self.websocket)
         try:
             if self.config_parameters.demo and self.config_parameters.debug_mode:
                 return await self.__process_video_demo()

@@ -81,7 +81,7 @@ class FramesPrintDebug:
                     f
                 )
             frames_out.append(out)
-            await websocket.send_json(JsonEncoder.update_step_json(f, total))
+            await websocket.send_json(JsonEncoder.update_step_json("visualize", f, total))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              

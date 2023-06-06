@@ -45,7 +45,7 @@ class MotionEstimation:
                 global_motion_vec, _, _, _ = block_matching.step(anchor, target)
                 global_motion_vectors.append(global_motion_vec)
         
-            await websocket.send_json(JsonEncoder.update_step_json(f, total))
+            await websocket.send_json(JsonEncoder.update_step_json("me", f, total))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              

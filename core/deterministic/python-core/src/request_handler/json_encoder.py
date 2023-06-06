@@ -79,5 +79,5 @@ class JsonEncoder:
         return cls.generate_json(cls.STATE_INIT_VIDEO_WRITING, message)
 
     @classmethod
-    def update_step_json(cls, step, total):
-        return cls.generate_json(cls.STATE_UPDATE_STEP, message="", step=str(step), total=str(total))
+    def update_step_json(cls, id, step, total):
+        return cls.generate_json(cls.STATE_UPDATE_STEP + "_" + id, message="", step=str(step), total=str(total))

@@ -1,7 +1,7 @@
 import cv2
 from fastapi import WebSocket, WebSocketDisconnect
 from tqdm import tqdm
-from src.request_handler.json_encoder import init_video_writing_json, update_step_json
+from src.request_handler.json_encoder import JsonEncoder
 
 class Video:
     def __init__(self, path):
@@ -11,7 +11,7 @@ class Video:
         self.shape = (0, 0) # H,W
         self.fps = None
 
-    def read_frames(self):
+    async def read_frames(self, websocket: WebSocket= None):
         try: 
             source = cv2.VideoCapture(self.path)
             total_frame = int(source.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -20,9 +20,11 @@ class Video:
             print("Error in Path or Frame Count")
             exit()
         
-        print("[INFO] Reading frames...", total_frame)
+        message = "Reading frames..."
+        print(message)
+        await websocket.send_json(JsonEncoder.init_reading_frames(message))
         gray_frames_inp = []
-        for _ in tqdm(range(total_frame)):
+        for i in tqdm(range(total_frame)):
             ret, frame = source.read()
             if not (ret or frame):
                 print("Error in Frame Read")
@@ -31,9 +33,13 @@ class Video:
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             if self.shape == (0, 0):
                 self.shape = (gray_frame.shape[0], gray_frame.shape[1])
-
             gray_frames_inp.append(gray_frame)
-        
+            await websocket.send_json(JsonEncoder.update_step_json("reading", i, total_frame))
+            try:
+                await websocket.receive_text()
+            except WebSocketDisconnect:              
+                raise
+
         self.gray_frame_inp = gray_frames_inp
 
         print("[INFO] Video Import Completed")
@@ -46,11 +52,11 @@ class Video:
 
         message = "Writing frames..."
         print(message)
-        await websocket.send_json(init_video_writing_json(message))
+        await websocket.send_json(JsonEncoder.init_video_writing_json(message))
         total = len(frames_out)
         for i, frame in enumerate(frames_out):          
             writer.write(frame)
-            await websocket.send_json(update_step_json(i, total))
+            await websocket.send_json(JsonEncoder.update_step_json("writing", i, total))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              
