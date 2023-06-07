@@ -19,10 +19,10 @@ export class DownloadComponent implements OnInit {
   ngOnInit(): void {
     this.subscription = this.webSocketService.receive().subscribe({
       next: message => {
-        if (message.state === 'file_processed_success') {
-          this.title = "Stabilized video ready - "
-          this.filename = message.data.filename;
-          this.downloadFile();
+        if (message.state === 'file_processed_success') { 
+          this.filename = message.data.filename; 
+          this.title = "Downloading the video..."         
+          this.downloadFile();          
           this.subscription!.unsubscribe();
         }
       },
@@ -36,7 +36,8 @@ export class DownloadComponent implements OnInit {
     if (this.filename) {
       this.videoService.downloadVideo(this.filename).subscribe({
         next: blob => {
-          this.videoUrl = window.URL.createObjectURL(blob); 
+          this.videoUrl = window.URL.createObjectURL(blob);
+          this.title = "Stabilized video ready - "
           // const link = document.createElement('a');
           // link.href = this.videoUrl;
           // link.download = this.filename!;
