@@ -17,7 +17,7 @@ import { DownloadComponent } from './pages/home-page/components/download-compone
 import { VideoService } from './services/video-service/video-service.service';
 import { WebSocketService } from './services/websocket-service//web-socket.service';
 
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -59,7 +59,10 @@ import { MatDialogModule } from '@angular/material/dialog';
     MatProgressSpinnerModule,
     MatDialogModule
   ],
-  providers: [VideoService, WebSocketService],
+  providers: [
+    VideoService, 
+    WebSocketService,
+    {provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: {appearance: 'outline'}}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -40,4 +40,8 @@ export class WebSocketService {
   public get messages$() {
     return this.socket$!.asObservable();
   }
+
+  public isConnected(): boolean {
+    return this.socket$ ? !this.socket$.closed : false;
+  }
 }
