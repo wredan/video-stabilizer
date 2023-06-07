@@ -12,8 +12,13 @@ export class VideoService {
   constructor(private http: HttpClient) { }
 
   uploadVideo(formData: FormData, filename: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/upload/${filename}`, formData);
-  }
+    const httpOptions = {
+      reportProgress: true,
+      observe: 'events' as 'body'
+    };
+    
+    return this.http.post(`${this.apiUrl}/upload/${filename}`, formData, httpOptions);
+  }  
 
   downloadVideo(filename: string): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/download/${filename}`, { responseType: 'blob' });

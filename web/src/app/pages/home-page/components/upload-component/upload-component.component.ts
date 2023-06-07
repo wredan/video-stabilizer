@@ -1,3 +1,4 @@
+import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { VideoService } from 'src/app/services/video-service/video-service.service';
@@ -13,6 +14,7 @@ export class UploadComponent {
   videoUrl: string | undefined;
   draggingOver = false;
   value: number = 40;
+  uploadProgress: number = 0;
 
   uploadForm = this.formBuilder.group({
     blockSize: ['64', Validators.required],
@@ -35,21 +37,27 @@ export class UploadComponent {
       console.log(this.videoFile.name)
 
       this.videoService.uploadVideo(formData, this.videoFile.name).subscribe({
-        next: response => {
-          console.log(response)
-          const filename = response.data.filename;
-          this.webSocketService.connect();
-          this.webSocketService.start_processing = true
-          this.webSocketService.send({
-            state: 'start_processing',
-            data: {
-              filename: filename,
-              blockSize: this.uploadForm.value.blockSize,
-              searchRange: this.uploadForm.value.searchRange,
-              filterIntensity: this.uploadForm.value.filterIntensity,
-              cropFrames: this.uploadForm.value.cropFrames,
-            },
-          });
+        next: event => {
+          if (event.type === HttpEventType.UploadProgress) {
+            // Calculate and update progress
+            this.uploadProgress = Math.round(100 * event.loaded / event.total);
+          } else if (event instanceof HttpResponse) {
+            console.log(event.body);
+            this.uploadProgress = 0
+            const filename = event.body.data.filename;
+            this.webSocketService.connect();
+            this.webSocketService.start_processing = true
+            this.webSocketService.send({
+              state: 'start_processing',
+              data: {
+                filename: filename,
+                blockSize: this.uploadForm.value.blockSize,
+                searchRange: this.uploadForm.value.searchRange,
+                filterIntensity: this.uploadForm.value.filterIntensity,
+                cropFrames: this.uploadForm.value.cropFrames,
+              },
+            });
+          }
         },
         error: err => {console.log(err)}
       });         

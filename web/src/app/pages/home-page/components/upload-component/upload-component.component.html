@@ -23,8 +23,8 @@
         <div class="flex flex-col mb-4">
           <mat-label class="mb-2">Filter Intensity</mat-label>
           <div class="w-full">
-            <mat-slider formControlName="filterIntensity" ngDefaultControl min="0" max="100" step="1" thumbLabel [displayWith]="formatLabel" tickInterval="auto">
-              <input matSliderThumb>
+            <mat-slider style="width: 100%; margin-left: 0px;" class="w-full" min="0" max="100" step="1" discrete tickInterval="auto">
+              <input class="w-full" formControlName="filterIntensity" matSliderThumb>
             </mat-slider>
           </div>
         </div>            
@@ -35,8 +35,12 @@
         </div>
   
         <div class="flex justify-center mt-12">
-          <button mat-raised-button color="primary" type="submit">Upload</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="uploadProgress > 0">Upload</button>
         </div>
+        <div class="flex justify-center mt-12" *ngIf="this.uploadProgress > 0">
+          <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+        </div>
+        
       </form>
     </div>
 
@@ -47,12 +51,12 @@
     (dragover)="onDragOver($event)"
     (drop)="onDrop($event)"
     (dragleave)="onDragLeave($event)"
-    [class.bg-blue-50]="draggingOver">
+    [class.bg-orange-50]="draggingOver">
     <input #fileInput id="file" type="file" onclick="this.value = null" (change)="onInputFileChange($event)" accept="video/*" class="w-full" hidden>
     <div class="text-center">
       <p class="text-gray-500" *ngIf="!draggingOver">Drag and drop your video file here or 
         <button class="text-amber-600 underline" (click)="fileInput.click()">select a file</button></p>
-      <p class="text-blue-500" *ngIf="draggingOver">Drop your file!</p>
+      <p class="text-orange-500" *ngIf="draggingOver">Drop your file!</p>
     </div>
   </div>
   
