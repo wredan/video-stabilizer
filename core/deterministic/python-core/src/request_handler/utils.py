@@ -36,10 +36,12 @@ def is_valid_filename(filename):
     return re.match(pattern, filename) is not None
 
 def get_stabilization_parameters(data, config_parameters: ConfigVideoParameters):
-    stabilization_parameters = data.get('data', {}).get('stabilization_parameters', {})
-    block_size = stabilization_parameters.get('block_size', config_parameters.block_size)
-    search_range = stabilization_parameters.get('search_range', config_parameters.search_range)
-    filter_intensity = stabilization_parameters.get('filter_intensity', config_parameters.filter_intensity)
-    crop_frames = stabilization_parameters.get('crop_frames', config_parameters.crop_frames)
+    data = data.get("data", {})
+    stabilization_parameters = data.get('stabilization_parameters', {})
+    print(stabilization_parameters)
+    block_size = int(stabilization_parameters.get('block_size', config_parameters.block_size))
+    search_range = int(stabilization_parameters.get('search_range', config_parameters.search_range))
+    filter_intensity = int(stabilization_parameters.get('filter_intensity', config_parameters.filter_intensity))
+    crop_frames = bool(stabilization_parameters.get('crop_frames', config_parameters.crop_frames))
 
-    return block_size, search_range, filter_intensity, crop_frames
+    return (block_size, block_size) , search_range, filter_intensity, crop_frames
