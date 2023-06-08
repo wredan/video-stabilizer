@@ -1,22 +1,21 @@
-<div class="flex flex-1 flex-col md:flex-row justify-around items-center p-4 h-full">
-    <div class="flex flex-col items-center justify-center mb-4 md:mb-0 md:pr-2">
-      <h2 class="text-2xl font-bold mb-2">Absolute Frame Position</h2>
-      <div *ngIf="afpUrl; else loading" (click)="openDialog(afpUrl)">
-        <img [src]="afpUrl" alt="Absolute Frame Position" class="max-w-md rounded shadow-md cursor-pointer transition duration-500 ease-in-out transform hover:scale-105">
-      </div>
-      <ng-template #loading>
-        <mat-spinner diameter="25"></mat-spinner>
-      </ng-template>
+<div class="stats-inverted-border-right flex flex-col md:flex-row items-center p-4">
+  <div class="flex flex-col items-center justify-center mb-4 md:mb-0 md:pr-2 md:w-1/2">
+    <h2 class="text-2xl font-bold mb-2">Absolute Frame Position</h2>
+    <div *ngIf="afpUrl; else loading" (click)="openDialog(afpUrl)">
+      <img [src]="afpUrl" alt="Absolute Frame Position" class="w-full object-contain max-w-md rounded shadow-md cursor-pointer transition duration-500 ease-in-out transform hover:scale-105">
     </div>
-  
-    <div class="flex flex-col items-center justify-center md:pl-2">
-      <h2 class="text-2xl font-bold mb-2">Global Corrected Motion Vectors</h2>
-      <div *ngIf="gcmUrl; else loading2" (click)="openDialog(gcmUrl)">
-        <img [src]="gcmUrl" alt="Global Corrected Motion Vectors" class="max-w-md rounded shadow-md cursor-pointer transition duration-500 ease-in-out transform hover:scale-105">
-      </div>
-      <ng-template #loading2>
-        <mat-spinner diameter="25"></mat-spinner>
-      </ng-template>
-    </div>
+    <ng-template #loading>
+      <mat-spinner diameter="25"></mat-spinner>
+    </ng-template>
   </div>
-  
+
+  <div class="flex flex-col items-center justify-center md:pl-2 sm:mt-8 md:mt-0 md:w-1/2">
+    <h2 class="text-2xl font-bold mb-2">Global Corrected Motion Vectors</h2>
+    <div *ngIf="gcmUrl; else loading2" (click)="openDialog(gcmUrl)">
+      <img [src]="gcmUrl" alt="Global Corrected Motion Vectors" class="w-full object-contain max-w-md rounded shadow-md cursor-pointer transition duration-500 ease-in-out transform hover:scale-105">
+    </div>
+    <ng-template #loading2>
+      <mat-spinner diameter="25"></mat-spinner>
+    </ng-template>
+  </div>
+</div>

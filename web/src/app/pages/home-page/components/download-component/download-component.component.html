@@ -4,7 +4,7 @@
 
 <div class="flex flex-col items-center justify-center">
     <div *ngIf="videoUrl; else loading" class="flex flex-row items-center justify-center">
-        <video controls [src]="videoUrl" class="w-full rounded-md">Browser does not support video tag.</video>
+        <video controls [src]="videoUrl" class="w-full rounded-lg">Browser does not support video tag.</video>
     </div>
     <ng-template #loading>
         <mat-spinner diameter="25"></mat-spinner>

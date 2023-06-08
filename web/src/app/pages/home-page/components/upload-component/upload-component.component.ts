@@ -1,32 +1,60 @@
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
+import { NotificationService } from 'src/app/services/notification-service/notification.service';
 import { VideoService } from 'src/app/services/video-service/video-service.service';
 import { WebSocketService } from 'src/app/services/websocket-service/web-socket.service';
-
 @Component({
   selector: 'app-upload-component',
   templateUrl: './upload-component.component.html',
-  styleUrls: ['./upload-component.component.scss']
+  styleUrls: ['./upload-component.component.scss'],
 })
 export class UploadComponent {
   videoFile: File | undefined;
   videoUrl: string | undefined;
   draggingOver = false;
-  value: number = 40;
   uploadProgress: number = 0;
+
+  videoPlayerOption: any;
 
   uploadForm = this.formBuilder.group({
     blockSize: ['64', Validators.required],
-    searchRange: [16, [Validators.required, Validators.min(2), Validators.max(32)]],
-    filterIntensity: [50, [Validators.required, Validators.min(0), Validators.max(100)]],
+    searchRange: [
+      16,
+      [Validators.required, Validators.min(2), Validators.max(32)],
+    ],
+    filterIntensity: [
+      50,
+      [Validators.required, Validators.min(0), Validators.max(100)],
+    ],
     cropFrames: [false, Validators.required],
   });
 
   constructor(
-    private formBuilder: FormBuilder, 
+    private formBuilder: FormBuilder,
     private videoService: VideoService,
-    public webSocketService: WebSocketService) { }
+    public webSocketService: WebSocketService,
+    private notificationService: NotificationService 
+  ) {}
+
+  reset() {
+    // Reset the form
+    this.uploadForm.reset({
+      blockSize: '64',
+      searchRange: 16,
+      filterIntensity: 50,
+      cropFrames: false,
+    });
+
+    // Reset other variables
+    URL.revokeObjectURL(this.videoUrl!)
+    this.videoFile = undefined;
+    this.videoUrl = undefined;
+    this.draggingOver = false;
+    this.webSocketService.start_processing = false;
+    this.webSocketService.end_processing = false;
+    this.uploadProgress = 0;
+  }
 
   onSubmit() {
     if (this.uploadForm.valid && this.videoFile) {
@@ -34,33 +62,40 @@ export class UploadComponent {
       if (this.videoFile) {
         formData.append('file', this.videoFile);
       }
-      console.log(this.videoFile.name)
 
       this.videoService.uploadVideo(formData, this.videoFile.name).subscribe({
-        next: event => {
+        next: (event) => {
           if (event.type === HttpEventType.UploadProgress) {
             // Calculate and update progress
-            this.uploadProgress = Math.round(100 * event.loaded / event.total);
+            this.uploadProgress = Math.round(
+              (100 * event.loaded) / event.total
+            );
           } else if (event instanceof HttpResponse) {
-            console.log(event.body);
-            this.uploadProgress = 0
+            this.notificationService.showSuccess("File uploaded! Starting processing...", 3000)
+            this.uploadProgress = 0;
             const filename = event.body.data.filename;
             this.webSocketService.connect();
-            this.webSocketService.start_processing = true
+            this.webSocketService.start_processing = true;
             this.webSocketService.send({
               state: 'start_processing',
               data: {
                 filename: filename,
-                blockSize: this.uploadForm.value.blockSize,
-                searchRange: this.uploadForm.value.searchRange,
-                filterIntensity: this.uploadForm.value.filterIntensity,
-                cropFrames: this.uploadForm.value.cropFrames,
+                stabilization_parameters: {
+                  block_size: this.uploadForm.value.blockSize,
+                  search_range: this.uploadForm.value.searchRange,
+                  filter_intensity: this.uploadForm.value.filterIntensity,
+                  crop_frames: this.uploadForm.value.cropFrames,
+                },
               },
             });
           }
         },
-        error: err => {console.log(err)}
-      });         
+        error: (err) => {
+          console.log(err);
+          this.notificationService.showError("An error during uploading occurred.")
+          this.reset()
+        },
+      });
     }
   }
 
@@ -78,8 +113,7 @@ export class UploadComponent {
       if (file.type.startsWith('video/')) {
         this.onFileChange(file);
       } else {
-        console.error('File is not a video');
-        // Show an error message to the user
+        this.notificationService.showError("File is not a video. You can upload only .mp4/.avi/.MOV videos")
       }
     }
   }
@@ -89,51 +123,36 @@ export class UploadComponent {
     this.draggingOver = false;
   }
 
-
   onInputFileChange(event: any) {
     if (event.target.files && event.target.files[0]) {
       this.videoFile = event.target.files[0];
-
-      // Show video preview
-      const reader = new FileReader();
-      reader.onload = (e: any) => this.videoUrl = e.target.result;
-      if (this.videoFile) {
-        reader.readAsDataURL(this.videoFile);
-      }      
+      if (this.videoFile && this.videoFile.type.startsWith('video/')) {
+          this.videoUrl = URL.createObjectURL(this.videoFile);       
+      }  else {
+        this.notificationService.showError("File is not a video. You can upload only .mp4/.avi/.MOV videos")
+      }  
     }
   }
-  
 
   onFileChange(file: File | Event): void {
-    console.log(this.videoFile)
     let selectedFile: File | null = null;
     if (file instanceof File) {
       selectedFile = file;
-    } else if (file instanceof Event && file.target instanceof HTMLInputElement) {
+    } else if (
+      file instanceof Event &&
+      file.target instanceof HTMLInputElement
+    ) {
       selectedFile = file.target.files ? file.target.files[0] : null;
     }
-  
+
     if (selectedFile && selectedFile.type.startsWith('video/')) {
       this.videoFile = selectedFile;
-  
+
       // Show video preview
-      const reader = new FileReader();
-      reader.onload = (e: any) => this.videoUrl = e.target.result;
-      reader.readAsDataURL(this.videoFile);      
+      this.videoUrl = URL.createObjectURL(this.videoFile);
     } else {
-      console.error('File is not a video');
-      // Show an error message to the user
+      this.notificationService.showError("File is not a video. You can upload only .mp4/.avi/.MOV videos")
     }
   }
-
-  formatLabel(value: number) {
-    if (!value) {
-      return "0";
-    }
-    this.value = value;
-    console.log(this.value);
-   
-    return value.toString();
-  }
-
+  
 }

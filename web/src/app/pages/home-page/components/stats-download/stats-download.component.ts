@@ -4,6 +4,7 @@ import { VideoService } from 'src/app/services/video-service/video-service.servi
 import { WebSocketService } from 'src/app/services/websocket-service/web-socket.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ImageDialogComponent } from '../image-dialog/image-dialog.component';
+import { NotificationService } from 'src/app/services/notification-service/notification.service';
 
 @Component({
   selector: 'app-stats-download',
@@ -19,6 +20,7 @@ export class StatsDownloadComponent implements OnInit {
   constructor(
     private videoService: VideoService, 
     private webSocketService: WebSocketService,
+    private notificationService : NotificationService,
     public dialog: MatDialog) { }
 
   ngOnInit(): void {
@@ -31,6 +33,7 @@ export class StatsDownloadComponent implements OnInit {
       },
       error: err => {
         console.error('WebSocket error:', err);
+        this.notificationService.showError("Connection error has occurred.")
       }
     });
   }
@@ -42,6 +45,7 @@ export class StatsDownloadComponent implements OnInit {
         },
         error: err => {
           console.error('Download error:', err);
+          this.notificationService.showError("Download error has occurred.")
         }
       });
       this.videoService.downloadImage("global_corrected_motion_vectors.png").subscribe({
@@ -50,6 +54,7 @@ export class StatsDownloadComponent implements OnInit {
         },
         error: err => {
           console.error('Download error:', err);
+          this.notificationService.showError("Download error has occurred.")
         }
       });
   }

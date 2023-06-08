@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { WebSocketService } from 'src/app/services/websocket-service/web-socket.service';
 import { Subscription } from 'rxjs';
+import { NotificationService } from 'src/app/services/notification-service/notification.service';
 
 @Component({
   selector: 'app-processing-component',
@@ -11,7 +12,9 @@ export class ProcessingComponent implements OnInit {
   stages: { state: string, message: string, progress: number, total: number }[] = [];
   private subscription: Subscription | undefined;
 
-  constructor(private webSocketService: WebSocketService) { }
+  constructor(
+    private webSocketService: WebSocketService,
+    private notificationService : NotificationService) { }
 
   ngOnInit(): void {
     this.subscription = this.webSocketService.receive().subscribe({
@@ -19,6 +22,9 @@ export class ProcessingComponent implements OnInit {
         console.log(message);
 
         let stage = this.stages.find(s => s.state === message.state);
+
+        if(message.state.contains('error'))
+          this.notificationService.showError(message.data.message)
 
         if (message.state === 'file_processed_success') {
           this.subscription!.unsubscribe();
@@ -39,6 +45,7 @@ export class ProcessingComponent implements OnInit {
       },
       error: err => {
         console.error('WebSocket error:', err);
+        this.notificationService.showError("Connection error has occurred.")
       }
     });
   }

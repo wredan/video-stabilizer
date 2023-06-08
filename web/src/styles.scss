@@ -16,3 +16,101 @@ $my-app-theme: mat-light-theme($my-app-primary, $my-app-accent, $my-app-warn);
   
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.shadow-trb {
+  -webkit-box-shadow: 14px 3px 14px 2px rgba(153,153,153,0.15); 
+box-shadow: 14px 3px 14px 2px rgba(153,153,153,0.15);
+}
+
+.shadow-tlb {
+    -webkit-box-shadow: -14px 3px 14px 2px rgba(153,153,153,0.15); 
+    box-shadow: -14px 3px 14px 2px rgba(153,153,153,0.15);
+}
+
+.stats-inverted-border-right,
+.stats-inverted-border-left,
+.inverted-border-radius-left {
+    position: relative;
+}
+
+.stats-inverted-border-left::before,
+.stats-inverted-border-left::after,
+.stats-inverted-border-right::before,
+.stats-inverted-border-right::after,
+.inverted-border-radius-left::before,
+.inverted-border-radius-left::after {
+    content: "";
+    position: absolute;
+    background-color: transparent;
+    height: 50px;
+    width: 25px;
+}
+
+.inverted-border-radius-left::before {
+    top: -3.1rem;
+    border-bottom-left-radius: 0.7rem;
+    box-shadow: 0 25px 0 0 white;
+
+}
+
+.inverted-border-radius-left::after {
+    bottom: -3.1rem;
+    border-top-left-radius: 0.7rem;
+    box-shadow: 0 -25px 0 0 white;
+}
+
+.stats-inverted-border-left::before {
+    top: -4.6rem;
+    left: -1.5rem;
+    border-bottom-left-radius: 0.7rem;
+    box-shadow: 0 25px 0 0 white;
+
+}
+
+.stats-inverted-border-left::after {
+    bottom: -4.6rem;
+    left: -1.5rem;
+    border-top-left-radius: 0.7rem;
+    box-shadow: 0 -25px 0 0 white;
+}
+
+.stats-inverted-border-right::before {
+    top: -4.6rem;
+    right: -1.5rem;
+    border-bottom-right-radius: 0.7rem;
+    box-shadow: 0 25px 0 0 white;
+
+}
+
+.stats-inverted-border-right::after {
+    top: 33.75rem;
+    right: -1.5rem;
+    border-top-right-radius: 0.7rem;
+    box-shadow: 0 -25px 0 0 white;
+}
+
+
+/* Hide pseudo-element at breakpoint 'sm' and lower */
+@media (max-width: 768px) {
+    .stats-inverted-border-right::before,
+    .stats-inverted-border-right::after,
+    .stats-inverted-border-left::before,
+    .stats-inverted-border-left::after,
+    .inverted-border-radius-left::before,
+    .inverted-border-radius-left::after {
+        content: none;
+    }
+}
+
+.mat-mdc-snack-bar-container {
+    --mat-mdc-snack-bar-button-color: #ffffff;
+    --mdc-snackbar-supporting-text-color: #ffffff;
+  
+    &.app-notification-error {
+      --mdc-snackbar-container-color: #f23a2f;
+    }
+  
+    &.app-notification-success {
+      --mdc-snackbar-container-color: #43a446;
+    }
+  }
