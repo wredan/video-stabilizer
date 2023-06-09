@@ -18,12 +18,28 @@ class FramePositionSmoothing:
         return (estimated_delta_x - delta_x, estimated_delta_y - delta_y)
 
     def _gaussian_filtering(self, accumulated_motion):
-        input_x = np.fft.fft(accumulated_motion[:, 0])
-        input_y = np.fft.fft(accumulated_motion[:, 1])
+        # Calculate the length of padding, which might be a percentage of the signal length
+        pad_len = int(self.config_parameters.padding_percentage * len(accumulated_motion))
+
+        # Create padding values
+        start_pad = np.ones((pad_len, 2)) * accumulated_motion[0]
+        end_pad = np.ones((pad_len, 2)) * accumulated_motion[-1]
+
+        # Add padding values to the beginning and end of the signal
+        accumulated_motion_padded = np.vstack((start_pad, accumulated_motion, end_pad))
+
+        # Proceed with the Fourier transform as before
+        input_x = np.fft.fft(accumulated_motion_padded[:, 0])
+        input_y = np.fft.fft(accumulated_motion_padded[:, 1])
         filtered_x = ndimage.fourier_gaussian(input_x, sigma=self.config_parameters.filter_intensity)
         filtered_y = ndimage.fourier_gaussian(input_y, sigma=self.config_parameters.filter_intensity)
         inverse_filtered_data_x = np.real(np.fft.ifft(filtered_x))
         inverse_filtered_data_y = np.real(np.fft.ifft(filtered_y))
+
+        # Remove padding values from the filtered signal
+        inverse_filtered_data_x = inverse_filtered_data_x[pad_len:-pad_len]
+        inverse_filtered_data_y = inverse_filtered_data_y[pad_len:-pad_len]
+
         inverse_filtered_data = np.column_stack((inverse_filtered_data_x, inverse_filtered_data_y))
         return inverse_filtered_data
 

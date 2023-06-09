@@ -40,8 +40,8 @@ class Video:
 
     async def write(self, frames_out, path, websocket: WebSocket= None):
         h, w = frames_out[0].shape[:2]
-        fourcc = cv2.VideoWriter_fourcc(*'H264')
-        # fourcc = -1
+        # fourcc = cv2.VideoWriter_fourcc(*'H264')
+        fourcc = -1
         writer = cv2.VideoWriter(path, fourcc, self.fps, (w, h), True)
 
         message = "Writing frames..."
