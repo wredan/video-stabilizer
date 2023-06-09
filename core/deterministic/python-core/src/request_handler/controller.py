@@ -16,11 +16,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Gestione del trasferimento del file HTTP
+# HTTP Connection Handlers
 @app.post("/upload/{filename}")
 async def upload_file(request: Request, filename: str, file: UploadFile = File(...)):
    return await RequestHandler.upload_file_handler(request=request, filename=filename, file=file)
-
 
 @app.get("/download/{filename}")
 async def download_file(request: Request, filename: str):
@@ -30,7 +29,7 @@ async def download_file(request: Request, filename: str):
 async def download_file(request: Request):
    return RequestHandler.delete_downloaded_file(request)
 
-# Gestione della connessione WebSocket
+# Webscoket Connection Handlers
 active_connections = set()
 
 @app.websocket("/ws")

@@ -60,19 +60,19 @@ class JsonEncoder:
 
     @classmethod
     def init_motion_estimation_json(cls, message, state = ""):
-        return cls.generate_json(cls.STATE_INIT_MOTION_ESTIMATION + state, message)
+        return cls.generate_json(cls.STATE_INIT_MOTION_ESTIMATION + "_" + state, message)
 
     @classmethod
     def init_frame_position_smoothing_json(cls, message):
         return cls.generate_json(cls.STATE_INIT_FRAME_POSITION_SMOOTHING, message)
 
     @classmethod
-    def init_frames_shift_json(cls, message):
-        return cls.generate_json(cls.STATE_INIT_FRAMES_SHIFT, message)
+    def init_frames_shift_json(cls, message, state = ""):
+        return cls.generate_json(cls.STATE_INIT_FRAMES_SHIFT + "_" + state, message)
 
     @classmethod
-    def init_frames_cropping_json(cls, message):
-        return cls.generate_json(cls.STATE_INIT_FRAMES_CROPPING, message)
+    def init_frames_cropping_json(cls, message, state = ""):
+        return cls.generate_json(cls.STATE_INIT_FRAMES_CROPPING + "_" + state, message)
 
     @classmethod
     def init_video_writing_json(cls, message):

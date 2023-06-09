@@ -106,15 +106,15 @@ class VideoProcessing:
         await self.video.write(frames_out= frames, path= path, gray= self.config_parameters.gray, websocket= self.websocket)
 
         if self.config_parameters.compare_filtered_result:
-            frames = await post_processing.shift_frames(self.video.gray_frame_inp, global_correct_motion_vectors, websocket= self.websocket)
-            frames = await post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors, websocket= self.websocket)
+            frames = await post_processing.shift_frames(self.video.gray_frame_inp, global_correct_motion_vectors, websocket= self.websocket, update_shift_id="shift_compare_smo", compare_message="shifting original video")
+            frames = await post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors, websocket= self.websocket, update_crop_id="crop_compare_smo", compare_message="cropped shifted video")
             await self._compare_filtered_result(post_processing, frames)
             
         return file_name
     
     async def _compare_filtered_result(self, post_processing: PostProcessing, filtered_cropped_frames):
         self.video.gray_frame_inp
-        origin_cropped_frames = await post_processing.crop_frames(self.video.gray_frame_inp, max_shift= post_processing.max_shift, websocket= self.websocket)
+        origin_cropped_frames = await post_processing.crop_frames(self.video.gray_frame_inp, max_shift= post_processing.max_shift, websocket= self.websocket, update_crop_id="crop_compare_orig", compare_message="cropped original video")
         origin_crop_gmv, _, _, _ = await self.motion_estimation.video_processing(origin_cropped_frames, websocket= self.websocket, update_step_code="me1", compare_message="cropped original video")
         origin_acc_motion = self.smoothing.get_accumulated_motion_vec(origin_crop_gmv)
 

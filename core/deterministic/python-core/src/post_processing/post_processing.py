@@ -8,14 +8,14 @@ class PostProcessing:
     def __init__(self) -> None:
         pass
 
-    async def shift_frames(self, frames, global_correct_motion_vectors, websocket: WebSocket):
+    async def shift_frames(self, frames, global_correct_motion_vectors, websocket: WebSocket, update_shift_id="shifting", compare_message=""):
         """
         Shifts each frame according to the corresponding global motion correction vector.
         Uses the OpenCV function cv2.warpAffine for the actual shifting.
         """
-        message = "Shifting frames..."
+        message = "Shifting frames " + compare_message + "..."
         print(message)
-        await websocket.send_json(JsonEncoder.init_frames_shift_json(message))
+        await websocket.send_json(JsonEncoder.init_frames_shift_json(message, state=update_shift_id))
         shifted_frames = []
         total = len(frames)
         for i, (frame, correction_vector) in tqdm(enumerate(zip(frames, global_correct_motion_vectors))):
@@ -23,7 +23,7 @@ class PostProcessing:
             shifted_frame = cv2.warpAffine(frame, M, (frame.shape[1], frame.shape[0]))
             shifted_frames.append(shifted_frame)
 
-            await websocket.send_json(JsonEncoder.update_step_json("shifting", i, total))
+            await websocket.send_json(JsonEncoder.update_step_json(update_shift_id, i, total))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              
@@ -31,7 +31,7 @@ class PostProcessing:
         return shifted_frames
 
 
-    async def crop_frames(self, frames, max_shift = None, global_correct_motion_vectors = None, websocket: WebSocket = None):
+    async def crop_frames(self, frames, max_shift = None, global_correct_motion_vectors = None, websocket: WebSocket = None, update_crop_id="cropping", compare_message=""):
         """
         Crops each frame to remove the black borders created due to shifting.
         """
@@ -42,9 +42,9 @@ class PostProcessing:
                             for correction_vector in global_correct_motion_vectors)            
             self.max_shift = max_shift
 
-        message = "Cropping frames..."
+        message = "Cropping frames " + compare_message + "..."
         print(message)
-        await websocket.send_json(JsonEncoder.init_frames_cropping_json(message))
+        await websocket.send_json(JsonEncoder.init_frames_cropping_json(message, state=update_crop_id))
 
         total = len(frames)
         for i, frame in tqdm(enumerate(frames)):
@@ -56,7 +56,7 @@ class PostProcessing:
 
             cropped_frames.append(cropped_frame)
 
-            await websocket.send_json(JsonEncoder.update_step_json("cropping", i, total))
+            await websocket.send_json(JsonEncoder.update_step_json(update_crop_id, i, total))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              
