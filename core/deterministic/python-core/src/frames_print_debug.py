@@ -3,6 +3,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 import numpy as np
 from tqdm import tqdm
 from src.request_handler.json_encoder import JsonEncoder
+import logging
 class FramesPrintDebug:
     def __init__(self):
         pass
@@ -21,8 +22,9 @@ class FramesPrintDebug:
                     second_quadrant, 
                     websocket: WebSocket=None):
         
+        logger = logging.getLogger('logger')
         message = f"Writing video with {third_quadrant_title} and {fourth_quadrant_title}..."
-        print(message)
+        logger.info(message)
         await websocket.send_json(JsonEncoder.init_video_writing_json(message))
 
         frames_out = []
@@ -59,7 +61,8 @@ class FramesPrintDebug:
         for frame in frames_out:
             writer.write(frame)
 
-        print("[INFO] Video Export Completed")
+        logger = logging.getLogger('logger')
+        logger.info("Video Export Completed")
 
     def visualize_single_color_frame(self, anchor, target, third_quadrant, third_quadrant_title, fourth_quadrant, fourth_quadrant_title, title, a):
         h, w = 70, 10

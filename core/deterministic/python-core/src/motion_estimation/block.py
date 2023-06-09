@@ -20,7 +20,6 @@ class Block():
     def calculate_mv_amp(self):
         """calculate L2 norm of motion-vector"""
         amp = (self.mv[0]**2 + self.mv[1]**2)**0.5
-        #print(f"amp for block at {self.coord}: {amp}") 
         if amp > Block.max_mv_amp:
             Block.max_mv_amp = amp
         self.mv_amp = amp

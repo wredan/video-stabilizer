@@ -1,3 +1,4 @@
+import logging
 import cv2
 from fastapi import WebSocket, WebSocketDisconnect
 from tqdm import tqdm
@@ -10,7 +11,8 @@ class MotionEstimation:
         
     async def video_processing(self, frames, websocket: WebSocket, update_step_code = 'me', compare_message = ""):
         message = "Motion Estimation (Block Matching - Three Step Search) processing " + compare_message + "..."
-        print(message)
+        logger = logging.getLogger('logger')
+        logger.info(message)
         await websocket.send_json(JsonEncoder.init_motion_estimation_json(message, state=update_step_code))
 
         global_motion_vectors = []

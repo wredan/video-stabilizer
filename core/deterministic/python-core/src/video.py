@@ -1,3 +1,4 @@
+import logging
 import cv2
 from fastapi import WebSocket, WebSocketDisconnect
 from tqdm import tqdm
@@ -11,21 +12,22 @@ class Video:
         self.fps = None
 
     async def read_frames(self, websocket: WebSocket= None):
+        logger = logging.getLogger('logger')
         try: 
             source = cv2.VideoCapture(self.path)
             total_frame = int(source.get(cv2.CAP_PROP_FRAME_COUNT))
             self.fps = source.get(cv2.CAP_PROP_FPS)  # Get the FPS of the video
-        except:
-            print("Error in Path or Frame Count")
-            exit()
+        except Exception as e:
+            logger.error("Error: " + str(e))
+            return
         
         message = "Reading frames..."
-        print(message)
+        logger.info(message)
         await websocket.send_json(JsonEncoder.init_reading_frames(message))
         for i in tqdm(range(total_frame)):
             ret, frame = source.read()
             if not (ret or frame):
-                print("Error in Frame Read")
+                logger.info("Error in Frame Read")
                 break
             self.frame_inp.append(frame)
             if self.shape == (0, 0):
@@ -36,7 +38,7 @@ class Video:
             except WebSocketDisconnect:              
                 raise
 
-        print("[INFO] Video Import Completed")
+        logger.info("Video Import Completed")
 
     async def write(self, frames_out, path, websocket: WebSocket= None):
         h, w = frames_out[0].shape[:2]
@@ -44,8 +46,9 @@ class Video:
         fourcc = -1
         writer = cv2.VideoWriter(path, fourcc, self.fps, (w, h), True)
 
+        logger = logging.getLogger('logger')
         message = "Writing frames..."
-        print(message)
+        logger.info(message)
         await websocket.send_json(JsonEncoder.init_video_writing_json(message))
         total = len(frames_out)
         for i, frame in enumerate(frames_out):          
@@ -56,4 +59,4 @@ class Video:
             except WebSocketDisconnect:              
                 raise
 
-        print("[INFO] Video Export Completed")
+        logger.info("Video Export Completed")

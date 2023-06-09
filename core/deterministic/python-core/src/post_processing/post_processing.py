@@ -1,3 +1,4 @@
+import logging
 import cv2
 from fastapi import WebSocket, WebSocketDisconnect
 import numpy as np
@@ -14,7 +15,8 @@ class PostProcessing:
         Uses the OpenCV function cv2.warpAffine for the actual shifting.
         """
         message = "Shifting frames " + compare_message + "..."
-        print(message)
+        logger = logging.getLogger('logger')
+        logger.info(message)
         await websocket.send_json(JsonEncoder.init_frames_shift_json(message, state=update_shift_id))
         shifted_frames = []
         total = len(frames)
@@ -43,7 +45,8 @@ class PostProcessing:
             self.max_shift = max_shift
 
         message = "Cropping frames " + compare_message + "..."
-        print(message)
+        logger = logging.getLogger('logger')
+        logger.info(message)
         await websocket.send_json(JsonEncoder.init_frames_cropping_json(message, state=update_crop_id))
 
         total = len(frames)

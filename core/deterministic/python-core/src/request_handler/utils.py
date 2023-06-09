@@ -38,7 +38,6 @@ def is_valid_filename(filename):
 def get_stabilization_parameters(data, config_parameters: ConfigVideoParameters):
     data = data.get("data", {})
     stabilization_parameters = data.get('stabilization_parameters', {})
-    print(stabilization_parameters)
     block_size = int(stabilization_parameters.get('block_size', config_parameters.block_size))
     search_range = int(stabilization_parameters.get('search_range', config_parameters.search_range))
     filter_intensity = int(stabilization_parameters.get('filter_intensity', config_parameters.filter_intensity))

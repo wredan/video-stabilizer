@@ -1,3 +1,4 @@
+import logging
 import os
 from fastapi import WebSocket
 import numpy as np
@@ -45,7 +46,8 @@ class FramePositionSmoothing:
 
     async def global_correction_motion_vectors(self, global_motion_vectors, websocket: WebSocket):
         message = "Frame Position Smoothing running..."
-        print(message)
+        logger = logging.getLogger('logger')
+        logger.info(message)
         await websocket.send_json(JsonEncoder.init_frame_position_smoothing_json(message))
         # Step 1: Calculate the accumulated motion vectors
         accumulated_motion = self.get_accumulated_motion_vec(global_motion_vectors)
