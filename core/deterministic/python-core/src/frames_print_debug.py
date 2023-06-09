@@ -7,36 +7,6 @@ class FramesPrintDebug:
     def __init__(self):
         pass
 
-    def show_demo_frame(self, video, a, third_quadrant, fourth_quadrant, third_quadrant_title, fourth_quadrant_title, window_title, gray = False):
-        anchor = video.gray_frame_inp[a]
-        target = video.gray_frame_inp[a + 1]
-
-        print(f"Showing frame with {third_quadrant_title} and {fourth_quadrant_title}...")
-
-        out = self.visualize_single_gray_frame(
-            anchor,
-            target,
-            third_quadrant,
-            third_quadrant_title,
-            fourth_quadrant,
-            fourth_quadrant_title,
-            window_title,
-            a
-        ) if gray else self.visualize_single_color_frame(
-                anchor,
-                target,
-                third_quadrant,
-                third_quadrant_title,
-                fourth_quadrant,
-                fourth_quadrant_title,
-                window_title,
-                a
-            )
-
-        cv2.imshow("Demo frame", out)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
     async def write_video(self, 
                     global_motion_vectors, 
                     video_frames, 
@@ -49,7 +19,6 @@ class FramesPrintDebug:
                     fps, 
                     second_override, 
                     second_quadrant, 
-                    gray=False,
                     websocket: WebSocket=None):
         
         message = f"Writing video with {third_quadrant_title} and {fourth_quadrant_title}..."
@@ -61,16 +30,7 @@ class FramesPrintDebug:
         for f in tqdm(range(total - 2)):
             anchor = video_frames[f]
             target = second_quadrant[f] if second_override else video_frames
-            out = self.visualize_single_gray_frame(
-                anchor,
-                target,
-                third_quadrant[f],
-                third_quadrant_title,
-                fourth_quadrant[f],
-                f"{fourth_quadrant_title} - {global_motion_vectors[f]}",
-                window_title,
-                f
-            ) if gray else self.visualize_single_color_frame(
+            out = self.visualize_single_color_frame(
                     anchor,
                     target,
                     third_quadrant[f],
@@ -97,32 +57,10 @@ class FramesPrintDebug:
         writer = cv2.VideoWriter(path, fourcc, fps, (w, h), True)
 
         for frame in frames_out:
-            if len(frame.shape) == 2:
-                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
             writer.write(frame)
 
         print("[INFO] Video Export Completed")
 
-    def visualize_single_gray_frame(self, anchor, target, third_quadrant, third_quadrant_title, fourth_quadrant, fourth_quadrant_title, title, a):
-        h, w = 70, 10
-        H, W = anchor.shape[:2]
-        HH, WW = h + 2 * H + 20, 2 * (W + w)
-        frame = np.full((HH, WW), 255, dtype=np.uint8)
-
-        cv2.putText(frame, title, (w, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, 0, 1, cv2.LINE_AA)
-        cv2.putText(frame, f"anchor-{a:03}", (w, h - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 0, 1, cv2.LINE_AA)
-        cv2.putText(frame, f"target-{a+1:03}", (w + W, h - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 0, 1, cv2.LINE_AA)
-        cv2.putText(frame, third_quadrant_title, (w, h + H + 17), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 0, 1, cv2.LINE_AA)
-        cv2.putText(frame, fourth_quadrant_title, (w + W, h + H + 17), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 0, 1, cv2.LINE_AA)
-
-        # reg of interest
-        frame[h:h+H, :W] = anchor
-        frame[h:h+H, W+w:2*W+w] = target if anchor.shape == target.shape else self.add_border(target, anchor.shape)
-        frame[h+H+20:2*H+h+20, :W] = third_quadrant
-        frame[h+H+20:2*H+h+20, W+w:2*W+w] = fourth_quadrant
-
-        return frame
-    
     def visualize_single_color_frame(self, anchor, target, third_quadrant, third_quadrant_title, fourth_quadrant, fourth_quadrant_title, title, a):
         h, w = 70, 10
         H, W = anchor.shape[:2]
@@ -135,12 +73,6 @@ class FramesPrintDebug:
         cv2.putText(frame, third_quadrant_title, (w, h + H + 17), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 0, 1, cv2.LINE_AA)
         cv2.putText(frame, fourth_quadrant_title, (w + W, h + H + 17), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 0, 1, cv2.LINE_AA)
 
-        # Convert to 3 channel image if not already
-        if len(third_quadrant.shape) == 2:
-            third_quadrant = cv2.cvtColor(third_quadrant, cv2.COLOR_GRAY2BGR)
-        if len(fourth_quadrant.shape) == 2:
-            fourth_quadrant = cv2.cvtColor(fourth_quadrant, cv2.COLOR_GRAY2BGR)
-
         # reg of interest
         frame[h:h+H, :W, :] = anchor
         frame[h:h+H, W+w:2*W+w, :] = target if anchor.shape == target.shape else self.add_border(target, anchor.shape)
@@ -149,7 +81,7 @@ class FramesPrintDebug:
 
         return frame
     
-    def add_border(self, frame, original_shape, gray=False):
+    def add_border(self, frame, original_shape):
         """
         Adds a black border to the frame to match the original shape, keeping the frame in the center.
         """
@@ -160,10 +92,7 @@ class FramesPrintDebug:
         right = original_shape[1] - frame.shape[1] - left
 
         # add the borders
-        if gray:
-            frame_with_border = cv2.copyMakeBorder(frame, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0])
-        else:
-            frame_with_border = cv2.copyMakeBorder(frame, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+        frame_with_border = cv2.copyMakeBorder(frame, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
         
         return frame_with_border
 

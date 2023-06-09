@@ -64,17 +64,16 @@ class VideoProcessing:
                 fps=self.video.fps,
                 second_override=True,
                 second_quadrant=filtered_cropped_frames,
-                gray=True,
                 websocket=self.websocket)
                 
     async def _process_video_demo(self):
         global_correct_motion_vectors, frame_anchor_p_vec, frame_motion_field_vec, frame_global_motion_vec = await self.motion_estimation_and_correction()
         global_corrected_vect_frames = utils.plot_global_corrected_motion_vector(global_correct_motion_vectors, self.video.shape[1], self.video.shape[0])
-        frames, post_processing = await self.post_process_frames(global_correct_motion_vectors)
+        frames = await self.post_process_frames(global_correct_motion_vectors)
 
         await FramesPrintDebug().write_video(
             global_motion_vectors= global_correct_motion_vectors, 
-            video_frames= self.video.frame_inp if self.config_parameters.gray else self.video.frame_inp, 
+            video_frames= self.video.frame_inp,
             third_quadrant= frame_global_motion_vec, 
             fourth_quadrant= global_corrected_vect_frames, 
             third_quadrant_title= "motion field", 
@@ -84,7 +83,6 @@ class VideoProcessing:
             fps= self.video.fps, 
             second_override= True, 
             second_quadrant= frames,
-            gray= self.config_parameters.gray,
             websocket= self.websocket)
         
         if self.config_parameters.compare_filtered_result:
@@ -99,14 +97,17 @@ class VideoProcessing:
         # Step 3: Post-Processing
         frames = await self.post_process_frames(global_correct_motion_vectors)
         
+        if self.config_parameters.compare_filtered_result:
+            await self.compare_and_plot(frames, global_correct_motion_vectors)
+        
+        del global_correct_motion_vectors
+        del self.video.frame_inp
+
         # Saving file
         file_name = self.video_name.split('.')[0] + ".mp4"
         path = os.path.join(self.config_parameters.base_path, self.client_dir, file_name)
         
         await self.video.write(frames_out= frames, path= path, websocket= self.websocket)
-
-        if self.config_parameters.compare_filtered_result:
-            await self.compare_and_plot(frames, global_correct_motion_vectors)
           
         return file_name
 

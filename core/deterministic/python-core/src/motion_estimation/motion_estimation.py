@@ -1,3 +1,4 @@
+import cv2
 from fastapi import WebSocket, WebSocketDisconnect
 from tqdm import tqdm
 from .block_matching import BlockMatching
@@ -6,16 +7,7 @@ from src.request_handler.json_encoder import JsonEncoder
 class MotionEstimation:
     def __init__(self, config_parameters: ConfigVideoParameters):
         self.config_parameters = config_parameters
-
-    def demo(self, frames, anchor_index: int, target_index: int):
-        if self.config_parameters.frames_print_debug:
-            anchor_frame = frames[anchor_index].copy()
-            target_frame = frames[target_index].copy()
-
-            return self.block_matching.step(anchor_frame, target_frame)
         
-        return None, None, None, None
-
     async def video_processing(self, frames, websocket: WebSocket, update_step_code = 'me', compare_message = ""):
         message = "Motion Estimation (Block Matching - Three Step Search) processing " + compare_message + "..."
         print(message)
@@ -30,8 +22,8 @@ class MotionEstimation:
         _range = range(len(frames) - 1)
         total = _range[-1]
         for f in tqdm(_range):
-            anchor =  frames[f]
-            target = frames[f + 1]
+            anchor =  cv2.cvtColor(frames[f], cv2.COLOR_BGR2GRAY)
+            target = cv2.cvtColor(frames[f + 1], cv2.COLOR_BGR2GRAY)
 
             if self.config_parameters.demo:
                 global_motion_vec, frame_anchor_p, frame_motion_field, frame_global_motion_vector = block_matching.step(anchor, target)

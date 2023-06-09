@@ -7,7 +7,6 @@ class Video:
     def __init__(self, path):
         self.path = path
         self.frame_inp = []
-        self.gray_frame_inp = []
         self.shape = (0, 0) # H,W
         self.fps = None
 
@@ -23,31 +22,26 @@ class Video:
         message = "Reading frames..."
         print(message)
         await websocket.send_json(JsonEncoder.init_reading_frames(message))
-        gray_frames_inp = []
         for i in tqdm(range(total_frame)):
             ret, frame = source.read()
             if not (ret or frame):
                 print("Error in Frame Read")
                 break
             self.frame_inp.append(frame)
-            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             if self.shape == (0, 0):
-                self.shape = (gray_frame.shape[0], gray_frame.shape[1])
-            gray_frames_inp.append(gray_frame)
+                self.shape = (frame.shape[0], frame.shape[1])
             await websocket.send_json(JsonEncoder.update_step_json("reading", i, total_frame))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              
                 raise
 
-        self.gray_frame_inp = gray_frames_inp
-
         print("[INFO] Video Import Completed")
 
-    async def write(self, frames_out, path, gray = False, websocket: WebSocket= None):
+    async def write(self, frames_out, path, websocket: WebSocket= None):
         h, w = frames_out[0].shape[:2]
-        # fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        fourcc = -1
+        fourcc = cv2.VideoWriter_fourcc(*'H264')
+        # fourcc = -1
         writer = cv2.VideoWriter(path, fourcc, self.fps, (w, h), True)
 
         message = "Writing frames..."
