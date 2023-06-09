@@ -116,36 +116,49 @@ export class UploadComponent {
     this.draggingOver = true;
   }
 
-  onDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.draggingOver = false;
-    const files = event.dataTransfer?.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      if (file.type.startsWith('video/')) {
-        this.onFileChange(file);
-      } else {
-        this.notificationService.showError("File is not a video. You can upload only .mp4/.avi/.MOV videos")
-      }
-    }
-  }
-
   onDragLeave(event: DragEvent): void {
     event.preventDefault();
     this.draggingOver = false;
   }
 
-  onInputFileChange(event: any) {
-    if (event.target.files && event.target.files[0]) {
-      this.videoFile = event.target.files[0];
-      if (this.videoFile && this.videoFile.type.startsWith('video/')) {
-          this.videoUrl = URL.createObjectURL(this.videoFile);       
-      }  else {
-        this.notificationService.showError("File is not a video. You can upload only .mp4/.avi/.MOV videos")
-      }  
+  private isValidVideo(file: File): boolean {
+    const fileType = file.type.split("/")[1];
+
+    if (!file.type.startsWith('video/') || !['avi', 'mp4', 'quicktime'].includes(fileType)) {
+      this.notificationService.showError("You can upload only .mp4/.avi/.MOV videos");
+      return false;
+    }
+  
+    if (fileType == "avi") {
+      this.notificationService.showError(`Preview not available for ${fileType}`);
+    }
+  
+    return true;
+  }
+  
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.draggingOver = false;
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+  
+    const file = files[0];
+  
+    if (this.isValidVideo(file)) {
+      this.onFileChange(file);
     }
   }
-
+  
+  onInputFileChange(event: any) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+  
+    if (this.isValidVideo(file)) {
+      this.videoFile = file;
+      this.videoUrl = URL.createObjectURL(this.videoFile!);
+    }
+  }
+  
   onFileChange(file: File | Event): void {
     let selectedFile: File | null = null;
     if (file instanceof File) {
@@ -156,15 +169,12 @@ export class UploadComponent {
     ) {
       selectedFile = file.target.files ? file.target.files[0] : null;
     }
-
-    if (selectedFile && selectedFile.type.startsWith('video/')) {
+  
+    if (selectedFile && this.isValidVideo(selectedFile)) {
       this.videoFile = selectedFile;
-
-      // Show video preview
       this.videoUrl = URL.createObjectURL(this.videoFile);
-    } else {
-      this.notificationService.showError("File is not a video. You can upload only .mp4/.avi/.MOV videos")
     }
   }
+  
   
 }

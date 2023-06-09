@@ -91,7 +91,7 @@ box-shadow: 14px 3px 14px 2px rgba(153,153,153,0.15);
 
 
 /* Hide pseudo-element at breakpoint 'sm' and lower */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .stats-inverted-border-right::before,
     .stats-inverted-border-right::after,
     .stats-inverted-border-left::before,

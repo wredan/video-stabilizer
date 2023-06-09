@@ -1,8 +1,8 @@
-<div class="upload-container flex flex-col md:flex-row items-stretch my-8">
+<div class="upload-container flex flex-col lg:flex-row items-stretch my-8">
   
-  <div class="settings-card bg-white sm:mb-6 sm:mx-6 md:m-0 md:w-1/6 mb-4 md:mb-0 md:rounded-l-none rounded-lg md:static shadow-trb">
+  <div class="settings-card bg-white mb-6 mx-3 sm:mx-7 lg:m-0 lg:w-1/6 lg:mb-0 lg:rounded-l-none rounded-lg lg:static shadow-trb">
     <div class="inverted-border-radius-left">
-      <div class="sm:px-6 sm:py-8 bg-white md:rounded-l-none rounded-lg">
+      <div class="px-6 py-8 bg-white lg:rounded-l-none rounded-lg">
         <h2>Parameters</h2>
         <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
           <mat-form-field class="w-full mb-4">
@@ -57,14 +57,14 @@
 
   </div>
 
-  <div class="flex flex-row flex-1 items-center justify-center shadow-lg bg-white md:mx-10 sm:mx-6 p-3 rounded-lg">
-    <div *ngIf="!videoUrl" class="drop-area w-5/6 md:h-5/6 border-2 border-dashed border-gray-200 rounded-md transition-colors duration-500 flex items-center justify-center"
+  <div class="flex lg:flex-row flex-col flex-1 items-center justify-center shadow-lg bg-white lg:mx-10 mx-3 sm:mx-7 mt-1 lg:mt-0 p-3 rounded-lg">
+    <div *ngIf="!videoUrl" class="drop-area w-full lg:w-5/6 lg:h-5/6 border-2 border-dashed border-gray-200 rounded-md transition-colors duration-500 flex items-center justify-center"
       (dragover)="onDragOver($event)"
       (drop)="onDrop($event)"
       (dragleave)="onDragLeave($event)"
       [class.bg-orange-50]="draggingOver">
       <input #fileInput id="file" type="file" onclick="this.value = null" (change)="onInputFileChange($event)" accept="video/*" class="w-full" hidden>
-      <div class="text-center sm:py-16">
+      <div class="text-center py-16">
         <p class="text-gray-500" *ngIf="!draggingOver">Drag and drop your video file here or 
           <button class="text-amber-600 underline" (click)="fileInput.click()">select a file</button></p>
         <p class="text-orange-500" *ngIf="draggingOver">Drop your file!</p>
