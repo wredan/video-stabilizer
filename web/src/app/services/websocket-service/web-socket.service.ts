@@ -15,9 +15,11 @@ export class WebSocketService {
   public end_processing = false
   
   public connect(): void {
-    if (!this.socket$ || this.socket$.closed) {
-      this.socket$ = webSocket(this.webSocketUrl);
+    if (this.socket$ && !this.socket$.closed) {
+      this.socket$.complete();
     }
+
+    this.socket$ = webSocket(this.webSocketUrl);
   }
 
   public send(data: any): void {

@@ -21,7 +21,7 @@
             <input matInput type="number" formControlName="searchRange" min="2" max="32">
           </mat-form-field>
     
-          <div class="flex flex-col mb-4">
+          <div class="flex flex-col mb-5">
             <mat-label class="mb-2">Filter Intensity</mat-label>
             <div class="w-full">
               <mat-slider style="width: 100%; margin-left: 0px;" class="w-full" min="0" max="100" step="1" discrete tickInterval="auto">
@@ -30,9 +30,14 @@
             </div>
           </div>            
     
-          <div class="flex items-center justify-center mb-4">
-            <mat-label class="mr-2">Crop Video</mat-label>
+          <div class="flex items-start justify-between mb-5">
+            <mat-label class="ml-2">Crop Video</mat-label>
             <mat-slide-toggle formControlName="cropFrames"></mat-slide-toggle>
+          </div>
+
+          <div class="flex items-start justify-between mb-5">
+            <mat-label class="ml-2">Compare Motion</mat-label>
+            <mat-slide-toggle formControlName="compareMotion"></mat-slide-toggle>
           </div>
     
           <div *ngIf="!webSocketService.end_processing" class="flex justify-center mt-12">
@@ -54,29 +59,33 @@
 
   <div class="flex flex-row flex-1 items-center justify-center shadow-lg bg-white md:mx-10 sm:mx-6 p-3 rounded-lg">
     <div *ngIf="!videoUrl" class="drop-area w-5/6 md:h-5/6 border-2 border-dashed border-gray-200 rounded-md transition-colors duration-500 flex items-center justify-center"
-    (dragover)="onDragOver($event)"
-    (drop)="onDrop($event)"
-    (dragleave)="onDragLeave($event)"
-    [class.bg-orange-50]="draggingOver">
-    <input #fileInput id="file" type="file" onclick="this.value = null" (change)="onInputFileChange($event)" accept="video/*" class="w-full" hidden>
-    <div class="text-center sm:py-16">
-      <p class="text-gray-500" *ngIf="!draggingOver">Drag and drop your video file here or 
-        <button class="text-amber-600 underline" (click)="fileInput.click()">select a file</button></p>
-      <p class="text-orange-500" *ngIf="draggingOver">Drop your file!</p>
-    </div>
-  </div>
-  
-  
-    <div class="md:w-3/4 w-full h-full flex flex-col items-center justify-center py-4" *ngIf="videoUrl">
-      <h2>Uploaded video</h2>
-      <div class="rounded-md">
-        <video controls [src]="videoUrl" class="w-full rounded-lg">Browser does not support video tag.</video>
+      (dragover)="onDragOver($event)"
+      (drop)="onDrop($event)"
+      (dragleave)="onDragLeave($event)"
+      [class.bg-orange-50]="draggingOver">
+      <input #fileInput id="file" type="file" onclick="this.value = null" (change)="onInputFileChange($event)" accept="video/*" class="w-full" hidden>
+      <div class="text-center sm:py-16">
+        <p class="text-gray-500" *ngIf="!draggingOver">Drag and drop your video file here or 
+          <button class="text-amber-600 underline" (click)="fileInput.click()">select a file</button></p>
+        <p class="text-orange-500" *ngIf="draggingOver">Drop your file!</p>
       </div>
     </div>
   
-    <div *ngIf="webSocketService.start_processing" class="md:w-3/4 w-full h-full flex flex-col items-center justify-center p-4">
+  
+    <div class="md:w-1/2 w-full h-full flex flex-col items-center justify-center py-4 slide-left"
+        [ngClass]="{'start-processing': webSocketService.start_processing, 'slide-right': downloadCompIsVisible}" *ngIf="videoUrl">
+      <h2>Uploaded video</h2>
+      <div class="rounded-lg">
+        <video controls [src]="videoUrl" class="w-full rounded-lg shadow-xl">Browser does not support video tag.</video>
+      </div>
+    </div>
+
+    <div *ngIf="downloadCompIsVisible" class="md:w-1/2 flex flex-col items-center justify-center p-4">
       <app-download-component></app-download-component>
     </div>
+
+
+    
   </div>
 
   

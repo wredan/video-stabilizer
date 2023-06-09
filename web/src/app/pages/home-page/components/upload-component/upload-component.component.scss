@@ -1,0 +1,12 @@
+.slide-left {
+    transition: transform 1s ease-out;
+  }
+  
+  .start-processing {
+    transform: translateX(-50%);
+  }
+  
+  .slide-right {
+    transition: transform 0s ease-out;
+    transform: translateX(0%);
+  }

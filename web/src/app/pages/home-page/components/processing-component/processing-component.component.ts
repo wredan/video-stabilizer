@@ -19,20 +19,22 @@ export class ProcessingComponent implements OnInit {
   ngOnInit(): void {
     this.subscription = this.webSocketService.receive().subscribe({
       next: message => { 
-        console.log(message);
-
+        console.log(message)
         let stage = this.stages.find(s => s.state === message.state);
 
-        if(message.state.contains('error'))
+        if(message.state.includes('error'))
           this.notificationService.showError(message.data.message)
 
-        if (message.state === 'file_processed_success') {
+        if (message.state === 'file_processed_success') {          
           this.subscription!.unsubscribe();
-          stage!.message = "File has been processed successfully";
         }
 
         if (!stage) {
-          stage = { state: message.state, message: message.data.message, progress: 0, total: 0 };
+          stage = { 
+            state: message.state, 
+            message: message.state === 'file_processed_success' ? "File has been processed successfully" : message.data.message, 
+            progress: 0, 
+            total: 0 };
           this.stages.push(stage);
         }
 

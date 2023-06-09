@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { VideoService } from 'src/app/services/video-service/video-service.service';
 import { WebSocketService } from 'src/app/services/websocket-service/web-socket.service';
 import { Subscription } from 'rxjs';
@@ -9,7 +9,7 @@ import { NotificationService } from 'src/app/services/notification-service/notif
   templateUrl: './download-component.component.html',
   styleUrls: ['./download-component.component.scss']
 })
-export class DownloadComponent implements OnInit {
+export class DownloadComponent implements OnInit, OnDestroy {
   filename: string | null = null;
   videoUrl: string | null = null; 
   private subscription: Subscription | undefined;
@@ -38,18 +38,17 @@ export class DownloadComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    URL.revokeObjectURL(this.videoUrl!)
+  }
+
   downloadFile(): void {
     if (this.filename) {
       this.videoService.downloadVideo(this.filename).subscribe({
         next: blob => {
-          this.videoUrl = window.URL.createObjectURL(blob);
+          this.videoUrl = URL.createObjectURL(blob);
           this.title = "Stabilized video ready - "
-          // const link = document.createElement('a');
-          // link.href = this.videoUrl;
-          // link.download = this.filename!;
-          // link.click();
-          // window.URL.revokeObjectURL(this.videoUrl);
-         // this.deleteFiles();
+          this.deleteFiles();
         },
         error: err => {
           console.error('Download error:', err);

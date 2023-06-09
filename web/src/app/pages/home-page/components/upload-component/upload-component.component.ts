@@ -24,11 +24,14 @@ export class UploadComponent {
       [Validators.required, Validators.min(2), Validators.max(32)],
     ],
     filterIntensity: [
-      50,
+      40,
       [Validators.required, Validators.min(0), Validators.max(100)],
     ],
     cropFrames: [false, Validators.required],
+    compareMotion: [false, Validators.required],
   });
+
+  downloadCompIsVisible: boolean = false
 
   constructor(
     private formBuilder: FormBuilder,
@@ -42,8 +45,9 @@ export class UploadComponent {
     this.uploadForm.reset({
       blockSize: '64',
       searchRange: 16,
-      filterIntensity: 50,
+      filterIntensity: 40,
       cropFrames: false,
+      compareMotion: false
     });
 
     // Reset other variables
@@ -52,6 +56,7 @@ export class UploadComponent {
     this.videoUrl = undefined;
     this.draggingOver = false;
     this.webSocketService.start_processing = false;
+    this.downloadCompIsVisible = false;
     this.webSocketService.end_processing = false;
     this.uploadProgress = 0;
   }
@@ -76,6 +81,9 @@ export class UploadComponent {
             const filename = event.body.data.filename;
             this.webSocketService.connect();
             this.webSocketService.start_processing = true;
+            setTimeout(() => {
+              this.downloadCompIsVisible = true;
+            }, 1000); 
             this.webSocketService.send({
               state: 'start_processing',
               data: {
@@ -85,17 +93,21 @@ export class UploadComponent {
                   search_range: this.uploadForm.value.searchRange,
                   filter_intensity: this.uploadForm.value.filterIntensity,
                   crop_frames: this.uploadForm.value.cropFrames,
+                  compare_motion: this.uploadForm.value.compareMotion
                 },
               },
             });
+            this.videoService.compare_motion_request = this.uploadForm.value.compareMotion!
           }
         },
         error: (err) => {
-          console.log(err);
+          console.error(err);
           this.notificationService.showError("An error during uploading occurred.")
           this.reset()
         },
       });
+    } else {
+      this.notificationService.showError("You need to choose a file before uploading anything!")
     }
   }
 

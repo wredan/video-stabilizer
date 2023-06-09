@@ -8,6 +8,7 @@ import { environment } from 'src/environments/environment';
 })
 export class VideoService {
   private apiUrl = environment.apiUrl;
+  public compare_motion_request: boolean = false
 
   constructor(private http: HttpClient) { }
 

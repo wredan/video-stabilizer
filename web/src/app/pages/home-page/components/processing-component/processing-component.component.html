@@ -1,9 +1,10 @@
-<div class="stats-inverted-border-left">
-  <h2>Processing stages</h2>
-  <div *ngFor="let stage of stages" class="px-4 py-2">
-    <p *ngIf="stage.message">{{ stage.message }}</p>
-    <div *ngIf="stage.progress && stage.progress > 0" class="pb-8">
-      <mat-progress-bar mode="determinate"  [value]="(stage.progress / stage.total) * 100"></mat-progress-bar>
-    </div>   
+<h2>Processing stages</h2>
+<div *ngFor="let stage of stages" class="px-4 py-2">
+  <p *ngIf="stage.message">{{ stage.message }}</p>
+  <div *ngIf="stage.progress && stage.progress > 0" class="pb-8">
+    <mat-progress-bar [color]="(stage.progress > ((stage.total * 99)/100)) ? 'primary' : 'warn'"
+                      mode="determinate"
+                      [value]="(stage.progress / stage.total) * 100">
+    </mat-progress-bar>
   </div>
 </div>

@@ -60,31 +60,31 @@ box-shadow: 14px 3px 14px 2px rgba(153,153,153,0.15);
 }
 
 .stats-inverted-border-left::before {
-    top: -4.6rem;
-    left: -1.5rem;
+    top: -3.1rem;
+    left: 0rem;
     border-bottom-left-radius: 0.7rem;
     box-shadow: 0 25px 0 0 white;
 
 }
 
 .stats-inverted-border-left::after {
-    bottom: -4.6rem;
-    left: -1.5rem;
+    bottom: -3.1rem;
+    left: 0rem;
     border-top-left-radius: 0.7rem;
     box-shadow: 0 -25px 0 0 white;
 }
 
 .stats-inverted-border-right::before {
-    top: -4.6rem;
-    right: -1.5rem;
+    top: -3.1rem;
+    right: 0rem;
     border-bottom-right-radius: 0.7rem;
     box-shadow: 0 25px 0 0 white;
 
 }
 
 .stats-inverted-border-right::after {
-    top: 33.75rem;
-    right: -1.5rem;
+    bottom: -3.1rem;
+    right: 0rem;
     border-top-right-radius: 0.7rem;
     box-shadow: 0 -25px 0 0 white;
 }
