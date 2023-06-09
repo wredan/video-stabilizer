@@ -1,9 +1,9 @@
-<div class="flex flex-row items-center justify-center">
+<div class="flex items-center justify-center flex-row">
     <h2>{{ title }}<a *ngIf="videoUrl" [href]="videoUrl" class="underline" download="{{filename}}"> Download</a></h2>
 </div>
 
-<div class="flex flex-col items-center justify-center">
-    <div *ngIf="videoUrl; else loading" class="flex flex-row items-center justify-center">
+<div class="flex items-center justify-center flex-col">
+    <div *ngIf="videoUrl; else loading" class="flex items-center justify-center flex-row">
         <video controls [src]="videoUrl" class="w-full rounded-lg shadow-xl">Browser does not support video tag.</video>
     </div>
     <ng-template #loading>

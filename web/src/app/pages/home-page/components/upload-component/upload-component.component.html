@@ -1,6 +1,6 @@
-<div class="upload-container flex flex-col lg:flex-row items-stretch my-8">
-  
-  <div class="settings-card bg-white mb-6 mx-3 sm:mx-7 lg:m-0 lg:w-1/6 lg:mb-0 lg:rounded-l-none rounded-lg lg:static shadow-trb">
+<div class="upload-container my-8 flex flex-col items-stretch lg:flex-row">
+
+  <div class="settings-card bg-white mx-3 shadow-trb rounded-lg mb-6 lg:m-0 lg:w-1/6 lg:static lg:mb-0 lg:rounded-l-none sm:mx-7">
     <div class="inverted-border-radius-left">
       <div class="px-6 py-8 bg-white lg:rounded-l-none rounded-lg">
         <h2>Parameters</h2>
@@ -48,13 +48,10 @@
           </div>
           <div class="flex justify-center mt-12" *ngIf="this.uploadProgress > 0">
             <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
-          </div>
-          
+          </div>          
         </form>
       </div>
     </div>
-
-
   </div>
 
   <div class="flex lg:flex-row flex-col flex-1 items-center justify-center shadow-lg bg-white lg:mx-10 mx-3 sm:mx-7 mt-1 lg:mt-0 p-3 rounded-lg">
@@ -72,8 +69,8 @@
     </div>
   
   
-    <div class="md:w-1/2 w-full h-full flex flex-col items-center justify-center py-4 slide-left"
-        [ngClass]="{'start-processing': webSocketService.start_processing, 'slide-right': downloadCompIsVisible}" *ngIf="videoUrl">
+    <div *ngIf="videoUrl" class="md:w-1/2 w-full h-full flex flex-col items-center justify-center py-4 slide-left"
+        [ngClass]="{'start-processing': webSocketService.start_processing, 'slide-right': downloadCompIsVisible}">
       <h2>Uploaded video</h2>
       <div class="rounded-lg">
         <video controls [src]="videoUrl" class="w-full rounded-lg shadow-xl">Browser does not support video tag.</video>
@@ -83,10 +80,6 @@
     <div *ngIf="downloadCompIsVisible" class="md:w-1/2 flex flex-col items-center justify-center p-4">
       <app-download-component></app-download-component>
     </div>
-
-
-    
   </div>
-
   
 </div>
