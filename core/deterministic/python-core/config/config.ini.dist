@@ -4,20 +4,17 @@ base_server_path=
 base_path = data/files/output
 path_out =
 
-block_size = 64,64
+block_size = 64
 search_range = 16
 filter_intensity = 40.0
-fps= 30
+crop_frames = False
+compare_filtered_result = False
 
-gray = False
 motion_intensity = True
 
 demo = False
 window_title =
 plot_scale_factor = 0.0
-compare_filtered_result = True
-
-crop_frames = False
 
 [connection]
 server_address = 

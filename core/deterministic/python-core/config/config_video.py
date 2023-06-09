@@ -26,7 +26,6 @@ class ConfigVideoParameters:
         self.search_range = default_params["search_range"]
         self.filter_intensity = default_params["filter_intensity"]
 
-        self.gray = kwargs.get("gray", default_params["gray"])
         self.motion_intensity = kwargs.get("motion_intensity", default_params["motion_intensity"])
 
         self.demo = kwargs.get("demo", default_params["demo"])
@@ -49,7 +48,6 @@ class ConfigVideoParameters:
             "block_size": block_size,
             "search_range": config.getint("default", "search_range"),
             "filter_intensity": config.getfloat("default", "filter_intensity"),
-            "gray": config.getboolean("default", "gray"),
             "motion_intensity": config.getboolean("default", "motion_intensity"),
             "demo": config.getboolean("default", "demo"),
             "plot_scale_factor": config.getfloat("default", "plot_scale_factor"),
