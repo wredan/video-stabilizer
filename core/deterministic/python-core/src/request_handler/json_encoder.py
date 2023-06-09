@@ -59,8 +59,8 @@ class JsonEncoder:
         return cls.generate_json(cls.STATE_INIT_READING_FRAMES, message)
 
     @classmethod
-    def init_motion_estimation_json(cls, message):
-        return cls.generate_json(cls.STATE_INIT_MOTION_ESTIMATION, message)
+    def init_motion_estimation_json(cls, message, state = ""):
+        return cls.generate_json(cls.STATE_INIT_MOTION_ESTIMATION + state, message)
 
     @classmethod
     def init_frame_position_smoothing_json(cls, message):

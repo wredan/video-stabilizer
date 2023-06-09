@@ -9,11 +9,12 @@ class ConfigVideoParameters:
         config.read("config/config.ini")
         self.set_default_parameters(kwargs, config)
 
-    def set_stabilization_parameters(self, block_size, search_range, filter_intensity, crop_frames):
+    def set_stabilization_parameters(self, block_size, search_range, filter_intensity, crop_frames, compare_motion):
         self.block_size = block_size
         self.search_range = search_range
         self.filter_intensity = filter_intensity
         self.crop_frames = crop_frames
+        self.compare_filtered_result = compare_motion
 
     def set_default_parameters(self, kwargs, config):
         default_params = self._parse_default_params(config)
@@ -32,7 +33,6 @@ class ConfigVideoParameters:
         self.plot_scale_factor = float(kwargs.get("plot_scale_factor", default_params["plot_scale_factor"]))
         self.compare_filtered_result = kwargs.get("compare_filtered_result", default_params["compare_filtered_result"])
 
-        self.debug_mode = kwargs.get("debug_mode", default_params["debug_mode"])
         self.crop_frames = kwargs.get("debug_mode", default_params["crop_frames"])
 
         self.base_Server_path = self._generate_base_server_path(config)
@@ -54,7 +54,6 @@ class ConfigVideoParameters:
             "demo": config.getboolean("default", "demo"),
             "plot_scale_factor": config.getfloat("default", "plot_scale_factor"),
             "compare_filtered_result": config.getboolean("default", "compare_filtered_result"),
-            "debug_mode": config.getboolean("default", "debug_mode"),
             "crop_frames": config.getboolean("default", "crop_frames"),
         }
 

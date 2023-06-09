@@ -66,6 +66,7 @@ def delete_client_dir(client_dir):
 
 async def websocket_handler(websocket: WebSocket):
     try:
+        client_dir=None
         data = await websocket.receive_text()
         data = json.loads(data)
         print(data)
@@ -85,25 +86,20 @@ async def websocket_handler(websocket: WebSocket):
                 await websocket.send_json(response)
                 await websocket.close()
     except (WebSocketDisconnect, Exception) as e:
-        delete_client_dir(client_dir)
-        if websocket.application_state != WebSocketState.DISCONNECTED:
-            response = JsonEncoder.error_file_processing_JSON()
-            await websocket.send_json(response)
-            await websocket.close()
-            print("An exception occurred:", str(e))
-            traceback.print_exc()
-        else:
-            print("Client disconnected during video processing.")
+        if client_dir: delete_client_dir(client_dir)
+        traceback.print_exc()
+        print("Client disconnected during video processing.")
 
 async def process_video(video_name: str, client_dir: str, data = None, websocket: WebSocket = None):
     config_parameters = ConfigVideoParameters()
     if data is not None:
-        block_size, search_range, filter_intensity, crop_frames = get_stabilization_parameters(data, config_parameters)
+        block_size, search_range, filter_intensity, crop_frames, compare_motion = get_stabilization_parameters(data, config_parameters)
         config_parameters.set_stabilization_parameters(block_size= block_size, 
                                                        search_range= search_range, 
                                                        filter_intensity= filter_intensity, 
-                                                       crop_frames= crop_frames)
-        if config_parameters.debug_mode:
+                                                       crop_frames= crop_frames,
+                                                       compare_motion= compare_motion)
+        if config_parameters.demo:
             config_parameters.path_out = config_parameters.generate_path_out()
 
     video_processing = VideoProcessing(video_name= video_name,

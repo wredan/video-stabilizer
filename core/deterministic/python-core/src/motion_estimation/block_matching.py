@@ -27,7 +27,7 @@ class BlockMatching:
 
         global_motion_vec = self.frame_global_motion_vector(blocks)
 
-        if self.config_parameters.debug_mode:
+        if self.config_parameters.demo:
             frame_anchor_p = self.blocks2frame(blocks, anchor)
             frame_motion_field = self.plot_motion_field(blocks)
             frame_global_motion_vector = self.plot_global_motion_vector(global_motion_vec)

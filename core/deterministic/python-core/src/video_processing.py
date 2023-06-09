@@ -49,12 +49,12 @@ class VideoProcessing:
         if self.config_parameters.compare_filtered_result:
             frames = await post_processing.shift_frames(self.video.gray_frame_inp, global_correct_motion_vectors, websocket= self.websocket)
             frames = await post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors, websocket= self.websocket)
-            await self._compare_filtered_result(post_processing, frames)
+            await self._compare_filtered_result_demo(post_processing, frames)
         
         return self.config_parameters.path_out
         
 
-    async def _compare_filtered_result(self, post_processing: PostProcessing, filtered_cropped_frames):
+    async def _compare_filtered_result_demo(self, post_processing: PostProcessing, filtered_cropped_frames):
         self.video.gray_frame_inp
         origin_cropped_frames = await post_processing.crop_frames(self.video.gray_frame_inp, max_shift= post_processing.max_shift, websocket= self.websocket)
         origin_crop_gmv, frame_anchor_p_vec, frame_motion_field_vec, frame_global_motion_vec = await self.motion_estimation.video_processing(origin_cropped_frames, websocket= self.websocket)
@@ -100,20 +100,39 @@ class VideoProcessing:
             frames = await post_processing.crop_frames(frames, global_correct_motion_vectors= global_correct_motion_vectors, websocket= self.websocket)
 
         # Saving file
-        if self.config_parameters.debug_mode:
-            path =  os.path.join(self.config_parameters.base_path, self.client_dir, self.config_parameters.path_out)
-            file_name = self.config_parameters.path_out
-        else:
-            file_name = self.video_name.split('.')[0] + ".mp4"
-            path = os.path.join(self.config_parameters.base_path, self.client_dir, file_name)
+        file_name = self.video_name.split('.')[0] + ".mp4"
+        path = os.path.join(self.config_parameters.base_path, self.client_dir, file_name)
         
         await self.video.write(frames_out= frames, path= path, gray= self.config_parameters.gray, websocket= self.websocket)
+
+        if self.config_parameters.compare_filtered_result:
+            frames = await post_processing.shift_frames(self.video.gray_frame_inp, global_correct_motion_vectors, websocket= self.websocket)
+            frames = await post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors, websocket= self.websocket)
+            await self._compare_filtered_result(post_processing, frames)
+            
         return file_name
     
+    async def _compare_filtered_result(self, post_processing: PostProcessing, filtered_cropped_frames):
+        self.video.gray_frame_inp
+        origin_cropped_frames = await post_processing.crop_frames(self.video.gray_frame_inp, max_shift= post_processing.max_shift, websocket= self.websocket)
+        origin_crop_gmv, _, _, _ = await self.motion_estimation.video_processing(origin_cropped_frames, websocket= self.websocket, update_step_code="me1", compare_message="cropped original video")
+        origin_acc_motion = self.smoothing.get_accumulated_motion_vec(origin_crop_gmv)
+
+        fil_crop_gmv, _, _, _ = await self.motion_estimation.video_processing(filtered_cropped_frames, websocket= self.websocket, update_step_code="me2", compare_message="cropped smoothed video")
+        filtered_acc_motion = self.smoothing.get_accumulated_motion_vec(fil_crop_gmv)
+
+        utils.plot_compare_motion(origin_acc_motion, 
+                                  filtered_acc_motion, 
+                                  os.path.join(self.config_parameters.base_path, 
+                                               self.client_dir,
+                                               "compare_motion.png"), 
+                                               self.config_parameters.plot_scale_factor)
+    
+
     async def run(self):
         await self.video.read_frames(self.websocket)
         try:
-            if self.config_parameters.demo and self.config_parameters.debug_mode:
+            if self.config_parameters.demo:
                 return await self.__process_video_demo()
             else:
                 return await self._process_video()

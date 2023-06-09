@@ -16,10 +16,10 @@ class MotionEstimation:
         
         return None, None, None, None
 
-    async def video_processing(self, frames, websocket: WebSocket):
-        message = "Motion Estimation (Block Matching - Three Step Search) processing..."
+    async def video_processing(self, frames, websocket: WebSocket, update_step_code = 'me', compare_message = ""):
+        message = "Motion Estimation (Block Matching - Three Step Search) processing " + compare_message + "..."
         print(message)
-        await websocket.send_json(JsonEncoder.init_motion_estimation_json(message))
+        await websocket.send_json(JsonEncoder.init_motion_estimation_json(message, state=update_step_code))
 
         global_motion_vectors = []
         frame_anchor_p_vec = []
@@ -33,7 +33,7 @@ class MotionEstimation:
             anchor =  frames[f]
             target = frames[f + 1]
 
-            if self.config_parameters.debug_mode:
+            if self.config_parameters.demo:
                 global_motion_vec, frame_anchor_p, frame_motion_field, frame_global_motion_vector = block_matching.step(anchor, target)
                 
                 global_motion_vectors.append(global_motion_vec)
@@ -45,7 +45,7 @@ class MotionEstimation:
                 global_motion_vec, _, _, _ = block_matching.step(anchor, target)
                 global_motion_vectors.append(global_motion_vec)
         
-            await websocket.send_json(JsonEncoder.update_step_json("me", f, total))
+            await websocket.send_json(JsonEncoder.update_step_json(update_step_code, f, total))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              

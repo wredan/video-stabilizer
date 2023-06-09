@@ -17,7 +17,6 @@ window_title =
 plot_scale_factor = 0.0
 compare_filtered_result = True
 
-debug_mode = False
 crop_frames = False
 
 [connection]

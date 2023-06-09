@@ -43,5 +43,6 @@ def get_stabilization_parameters(data, config_parameters: ConfigVideoParameters)
     search_range = int(stabilization_parameters.get('search_range', config_parameters.search_range))
     filter_intensity = int(stabilization_parameters.get('filter_intensity', config_parameters.filter_intensity))
     crop_frames = bool(stabilization_parameters.get('crop_frames', config_parameters.crop_frames))
+    compare_motion = bool(stabilization_parameters.get('compare_motion', config_parameters.crop_frames))
 
-    return (block_size, block_size) , search_range, filter_intensity, crop_frames
+    return (block_size, block_size) , search_range, filter_intensity, crop_frames, compare_motion

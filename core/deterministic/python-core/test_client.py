@@ -71,7 +71,8 @@ def file_uploaded_JSON(filename = None):
                 "block_size": 64, 
                 "search_range": 16, 
                 "filter_intensity": 80, 
-                "crop_frames": False
+                "crop_frames": False,
+                "compare_motion": False
             }
         }
     }
