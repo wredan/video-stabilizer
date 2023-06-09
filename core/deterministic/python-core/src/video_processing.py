@@ -19,21 +19,62 @@ class VideoProcessing:
         self.video = Video(video_path)
         self.motion_estimation = MotionEstimation(self.config_parameters)
         self.smoothing = FramePositionSmoothing(self.config_parameters, client_dir=client_dir)
+        self.post_processing = PostProcessing()
     
-    async def __process_video_demo(self):
-        global_motion_vectors, frame_anchor_p_vec, frame_motion_field_vec, frame_global_motion_vec = await self.motion_estimation.video_processing(self.video.gray_frame_inp, websocket= self.websocket)
-        global_correct_motion_vectors = await self.smoothing.global_correction_motion_vectors(global_motion_vectors, websocket= self.websocket)
-        global_corrected_vect_frames = utils.plot_global_corrected_motion_vector(global_correct_motion_vectors, self.video.shape[1], self.video.shape[0])
-        frames = self.video.gray_frame_inp if self.config_parameters.gray else self.video.frame_inp
+    async def motion_estimation_and_correction(self):
+        global_motion_vectors, frame_anchor_p_vec, frame_motion_field_vec, frame_global_motion_vec = await self.motion_estimation.video_processing(self.video.frame_inp, websocket=self.websocket)
+        global_correct_motion_vectors = await self.smoothing.global_correction_motion_vectors(global_motion_vectors, websocket=self.websocket)
+        return global_correct_motion_vectors, frame_anchor_p_vec, frame_motion_field_vec, frame_global_motion_vec
 
-        post_processing = PostProcessing()
-        frames = await post_processing.shift_frames(frames, global_correct_motion_vectors, websocket= self.websocket)
+    async def post_process_frames(self, global_correct_motion_vectors):
+        frames = await self.post_processing.shift_frames(self.video.frame_inp, global_correct_motion_vectors, websocket=self.websocket)
         if self.config_parameters.crop_frames:
-            frames = await post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors, websocket= self.websocket)
+            frames = await self.post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors, websocket=self.websocket)
+        return frames
+    
+    async def compare_and_plot(self, frames, global_correct_motion_vectors):
+
+        filtered_cropped_frames = frames
+        if not self.config_parameters.crop_frames:
+            filtered_cropped_frames = await self.post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors, websocket= self.websocket, update_crop_id="crop_comp_smot", compare_message="smoothed")
+        fil_crop_gmv, _, _, fil_frame_global_motion_vec = await self.motion_estimation.video_processing(frames, websocket=self.websocket, update_step_code="me2", compare_message="smoothed")
+        filtered_acc_motion = self.smoothing.get_accumulated_motion_vec(fil_crop_gmv)
+
+        origin_cropped_frames = await self.post_processing.crop_frames(self.video.frame_inp, max_shift=self.post_processing.max_shift, websocket=self.websocket, update_crop_id="crop_comp_origin", compare_message="origin")
+        origin_crop_gmv, _, _, frame_global_motion_vec = await self.motion_estimation.video_processing(origin_cropped_frames, websocket=self.websocket, update_step_code="me1", compare_message="origin")
+        origin_acc_motion = self.smoothing.get_accumulated_motion_vec(origin_crop_gmv)
+        
+        utils.plot_compare_motion(origin_acc_motion,
+                                  filtered_acc_motion,
+                                  os.path.join(self.config_parameters.base_path,
+                                               self.client_dir,
+                                               (self.config_parameters.path_out + "_compare_motion.png" if self.config_parameters.demo else "compare_motion.png")),
+                                  self.config_parameters.plot_scale_factor)
+        
+        if self.config_parameters.demo:
+            await FramesPrintDebug().write_video(
+                global_motion_vectors=origin_crop_gmv,
+                video_frames=origin_cropped_frames,
+                third_quadrant=frame_global_motion_vec,
+                fourth_quadrant=fil_frame_global_motion_vec,
+                third_quadrant_title="Origin motion field",
+                fourth_quadrant_title="Filtered motion field",
+                window_title="Demo",
+                path=os.path.join(self.config_parameters.base_path, self.client_dir, "compare.mp4"),
+                fps=self.video.fps,
+                second_override=True,
+                second_quadrant=filtered_cropped_frames,
+                gray=True,
+                websocket=self.websocket)
+                
+    async def _process_video_demo(self):
+        global_correct_motion_vectors, frame_anchor_p_vec, frame_motion_field_vec, frame_global_motion_vec = await self.motion_estimation_and_correction()
+        global_corrected_vect_frames = utils.plot_global_corrected_motion_vector(global_correct_motion_vectors, self.video.shape[1], self.video.shape[0])
+        frames, post_processing = await self.post_process_frames(global_correct_motion_vectors)
 
         await FramesPrintDebug().write_video(
             global_motion_vectors= global_correct_motion_vectors, 
-            video_frames= self.video.gray_frame_inp if self.config_parameters.gray else self.video.frame_inp, 
+            video_frames= self.video.frame_inp if self.config_parameters.gray else self.video.frame_inp, 
             third_quadrant= frame_global_motion_vec, 
             fourth_quadrant= global_corrected_vect_frames, 
             third_quadrant_title= "motion field", 
@@ -47,93 +88,33 @@ class VideoProcessing:
             websocket= self.websocket)
         
         if self.config_parameters.compare_filtered_result:
-            frames = await post_processing.shift_frames(self.video.gray_frame_inp, global_correct_motion_vectors, websocket= self.websocket)
-            frames = await post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors, websocket= self.websocket)
-            await self._compare_filtered_result_demo(post_processing, frames)
+            await self.compare_and_plot(frames, global_correct_motion_vectors)
         
         return self.config_parameters.path_out
         
-
-    async def _compare_filtered_result_demo(self, post_processing: PostProcessing, filtered_cropped_frames):
-        self.video.gray_frame_inp
-        origin_cropped_frames = await post_processing.crop_frames(self.video.gray_frame_inp, max_shift= post_processing.max_shift, websocket= self.websocket)
-        origin_crop_gmv, frame_anchor_p_vec, frame_motion_field_vec, frame_global_motion_vec = await self.motion_estimation.video_processing(origin_cropped_frames, websocket= self.websocket)
-        origin_acc_motion = self.smoothing.get_accumulated_motion_vec(origin_crop_gmv)
-
-        fil_crop_gmv, fil_frame_anchor_p_vec, fil_frame_motion_field_vec, fil_frame_global_motion_vec = await self.motion_estimation.video_processing(filtered_cropped_frames, websocket= self.websocket)
-        filtered_acc_motion = self.smoothing.get_accumulated_motion_vec(fil_crop_gmv)
-
-        utils.plot_compare_motion(origin_acc_motion, 
-                                  filtered_acc_motion, 
-                                  os.path.join(self.config_parameters.base_path, 
-                                               self.client_dir,
-                                               self.config_parameters.path_out + "_compare_motion.png"), 
-                                               self.config_parameters.plot_scale_factor)
-
-        await FramesPrintDebug().write_video(
-            global_motion_vectors= origin_crop_gmv, 
-            video_frames= origin_cropped_frames, 
-            third_quadrant= frame_global_motion_vec, 
-            fourth_quadrant= fil_frame_global_motion_vec, 
-            third_quadrant_title= "Origin motion field", 
-            fourth_quadrant_title= "Filtered motion field", 
-            window_title= "Demo", 
-            path= os.path.join(self.config_parameters.base_path, self.client_dir, "compare.mp4"), 
-            fps= self.video.fps, 
-            second_override= True, 
-            second_quadrant= filtered_cropped_frames,
-            gray= True,
-            websocket= self.websocket)
-        
     async def _process_video(self):
-        # Step 1: Motion Estimation
-        global_motion_vectors, _, _, _ = await self.motion_estimation.video_processing(self.video.gray_frame_inp, self.websocket)
-
-        # Step 2: Motion filtering
-        global_correct_motion_vectors = await self.smoothing.global_correction_motion_vectors(global_motion_vectors, self.websocket)
-
+        # Step 1 and 2: Motion Estimation and filtering
+        global_correct_motion_vectors, _, _, _ = await self.motion_estimation_and_correction()
+        
         # Step 3: Post-Processing
-        post_processing = PostProcessing()
-        frames = self.video.gray_frame_inp if self.config_parameters.gray else self.video.frame_inp
-        frames = await post_processing.shift_frames(frames, global_correct_motion_vectors, self.websocket)
-        if self.config_parameters.crop_frames:
-            frames = await post_processing.crop_frames(frames, global_correct_motion_vectors= global_correct_motion_vectors, websocket= self.websocket)
-
+        frames = await self.post_process_frames(global_correct_motion_vectors)
+        
         # Saving file
         file_name = self.video_name.split('.')[0] + ".mp4"
         path = os.path.join(self.config_parameters.base_path, self.client_dir, file_name)
         
-        await self.video.write(frames_out= frames, path= path, gray= self.config_parameters.gray, websocket= self.websocket)
+        await self.video.write(frames_out= frames, path= path, websocket= self.websocket)
 
         if self.config_parameters.compare_filtered_result:
-            frames = await post_processing.shift_frames(self.video.gray_frame_inp, global_correct_motion_vectors, websocket= self.websocket, update_shift_id="shift_compare_smo", compare_message="shifting original video")
-            frames = await post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors, websocket= self.websocket, update_crop_id="crop_compare_smo", compare_message="cropped shifted video")
-            await self._compare_filtered_result(post_processing, frames)
-            
+            await self.compare_and_plot(frames, global_correct_motion_vectors)
+          
         return file_name
-    
-    async def _compare_filtered_result(self, post_processing: PostProcessing, filtered_cropped_frames):
-        self.video.gray_frame_inp
-        origin_cropped_frames = await post_processing.crop_frames(self.video.gray_frame_inp, max_shift= post_processing.max_shift, websocket= self.websocket, update_crop_id="crop_compare_orig", compare_message="cropped original video")
-        origin_crop_gmv, _, _, _ = await self.motion_estimation.video_processing(origin_cropped_frames, websocket= self.websocket, update_step_code="me1", compare_message="cropped original video")
-        origin_acc_motion = self.smoothing.get_accumulated_motion_vec(origin_crop_gmv)
-
-        fil_crop_gmv, _, _, _ = await self.motion_estimation.video_processing(filtered_cropped_frames, websocket= self.websocket, update_step_code="me2", compare_message="cropped smoothed video")
-        filtered_acc_motion = self.smoothing.get_accumulated_motion_vec(fil_crop_gmv)
-
-        utils.plot_compare_motion(origin_acc_motion, 
-                                  filtered_acc_motion, 
-                                  os.path.join(self.config_parameters.base_path, 
-                                               self.client_dir,
-                                               "compare_motion.png"), 
-                                               self.config_parameters.plot_scale_factor)
-    
 
     async def run(self):
         await self.video.read_frames(self.websocket)
         try:
             if self.config_parameters.demo:
-                return await self.__process_video_demo()
+                return await self._process_video_demo()
             else:
                 return await self._process_video()
         except WebSocketDisconnect:
