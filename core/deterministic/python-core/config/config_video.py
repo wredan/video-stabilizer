@@ -1,10 +1,7 @@
 import configparser
 
 class ConfigVideoParameters:
-    def __init__(
-        self,
-        **kwargs,
-    ) -> None:
+    def __init__(self, **kwargs) -> None:
         config = configparser.ConfigParser()
         config.read("config/config.ini")
         self.set_default_parameters(kwargs, config)
@@ -25,50 +22,36 @@ class ConfigVideoParameters:
         self.block_size = default_params["block_size"]
         self.search_range = default_params["search_range"]
         self.filter_intensity = default_params["filter_intensity"]
+        self.crop_frames = kwargs.get("debug_mode", default_params["crop_frames"])
+        self.compare_filtered_result = kwargs.get("compare_filtered_result", default_params["compare_filtered_result"])
+        self.padding_percentage = kwargs.get("padding_percentage", default_params["padding_percentage"])
 
         self.motion_intensity = kwargs.get("motion_intensity", default_params["motion_intensity"])
 
         self.demo = kwargs.get("demo", default_params["demo"])
         self.plot_scale_factor = float(kwargs.get("plot_scale_factor", default_params["plot_scale_factor"]))
-        self.compare_filtered_result = kwargs.get("compare_filtered_result", default_params["compare_filtered_result"])
-
-        self.crop_frames = kwargs.get("debug_mode", default_params["crop_frames"])
-
-        self.base_Server_path = self._generate_base_server_path(config)
-        self.path_out = kwargs.get("path_out", self.generate_path_out())
         self.window_title = kwargs.get("window_title", self._generate_window_title())
+        self.path_out = kwargs.get("path_out", self.generate_path_out())
 
     def _parse_default_params(self, config: configparser.ConfigParser) -> dict:
-        block_size = tuple(
-            int(size) for size in config.get("default", "block_size").split(",")
-        )
+        block_size = tuple(int(size) for size in config.get("default", "block_size").split(","))
         return {
             "path_in": config.get("default", "path_in"),
             "base_path": config.get("default", "base_path"),
+            "path_out": "",
             "block_size": block_size,
             "search_range": config.getint("default", "search_range"),
             "filter_intensity": config.getfloat("default", "filter_intensity"),
             "motion_intensity": config.getboolean("default", "motion_intensity"),
+            "padding_percentage": config.getint("default", "padding_percentage"),
             "demo": config.getboolean("default", "demo"),
             "plot_scale_factor": config.getfloat("default", "plot_scale_factor"),
             "compare_filtered_result": config.getboolean("default", "compare_filtered_result"),
             "crop_frames": config.getboolean("default", "crop_frames"),
         }
 
-    def _generate_base_server_path(self, config) -> str:
-        return "http://{}:{}".format(
-            config.get("connection", "server_address"), 
-            config.get("connection", "http_port"))
-
     def generate_path_out(self) -> str:
-        return "BS{}-SR{}-FI{}.mp4".format(
-            self.block_size[0],
-            self.search_range,
-            self.filter_intensity,
-        )
+        return "BS{}-SR{}-FI{}.mp4".format(self.block_size[0], self.search_range, self.filter_intensity)
 
     def _generate_window_title(self) -> str:
-        return "Block Matching Algorithm - DFD: MSE | {} | Search Range: {}".format(
-            self.block_size,
-            self.search_range
-        )
+        return "Block Matching Algorithm - DFD: MSE | {} | Search Range: {}".format(self.block_size, self.search_range)

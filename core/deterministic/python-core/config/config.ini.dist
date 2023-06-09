@@ -1,6 +1,5 @@
 [default]
 path_in = data/files/input
-base_server_path=
 base_path = data/files/output
 path_out =
 
@@ -9,6 +8,7 @@ search_range = 16
 filter_intensity = 40.0
 crop_frames = False
 compare_filtered_result = False
+padding_percentage = 15
 
 motion_intensity = True
 
