@@ -1,6 +1,7 @@
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { NotificationService } from 'src/app/services/notification-service/notification.service';
 import { VideoService } from 'src/app/services/video-service/video-service.service';
 import { WebSocketService } from 'src/app/services/websocket-service/web-socket.service';
@@ -14,6 +15,7 @@ export class UploadComponent {
   videoUrl: string | undefined;
   draggingOver = false;
   uploadProgress: number = 0;
+  private subscription: Subscription | undefined;
 
   videoPlayerOption: any;
 
@@ -98,6 +100,12 @@ export class UploadComponent {
               },
             });
             this.videoService.compare_motion_request = this.uploadForm.value.compareMotion!
+            this.subscription = this.webSocketService.receive().subscribe({
+               error: err => {
+                this.reset();
+                this.subscription?.unsubscribe()
+              }
+            });
           }
         },
         error: (err) => {

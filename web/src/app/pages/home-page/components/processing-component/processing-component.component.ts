@@ -19,7 +19,6 @@ export class ProcessingComponent implements OnInit {
   ngOnInit(): void {
     this.subscription = this.webSocketService.receive().subscribe({
       next: message => { 
-        console.log(message)
         let stage = this.stages.find(s => s.state === message.state);
 
         if(message.state.includes('error'))
