@@ -1,8 +1,10 @@
 import logging
+import traceback
 import cv2
 from fastapi import WebSocket, WebSocketDisconnect
 from tqdm import tqdm
 from src.request_handler.json_encoder import JsonEncoder
+from moviepy.editor import VideoFileClip
 
 class Video:
     def __init__(self, path):
@@ -17,8 +19,9 @@ class Video:
             source = cv2.VideoCapture(self.path)
             total_frame = int(source.get(cv2.CAP_PROP_FRAME_COUNT))
             self.fps = source.get(cv2.CAP_PROP_FPS)  # Get the FPS of the video
-        except Exception as e:
+        except Exception as e:            
             logger.error("Error: " + str(e))
+            logger.error(traceback.format_exc())
             return
         
         message = "Reading frames..."

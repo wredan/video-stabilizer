@@ -24,6 +24,7 @@ async def upload_file_handler(request: Request, filename: str, file: UploadFile)
         ext = get_file_ext(filename)
     except ValueError as e:
         logger.error("Error: " + str(e))
+        logger.error(traceback.format_exc())
         return JSONResponse(status_code=400, content=JsonEncoder.error_uploading_file_JSON(str(e))) 
     
     client_address = create_out_dir_from_client_address(request)
@@ -34,6 +35,7 @@ async def upload_file_handler(request: Request, filename: str, file: UploadFile)
             f.write(await file.read())
     except Exception as e:
         logger.error("Error: " + str(e))
+        logger.error(traceback.format_exc())
         return JSONResponse(status_code=500, content=JsonEncoder.error_uploading_file_JSON())
     logger.info("Uploaded video saved at: " + input_path)
     response = JSONResponse(status_code=200, content=JsonEncoder.file_uploaded_JSON(filename=unique_name + "." + ext))
@@ -47,6 +49,7 @@ def download_file_handler(request: Request, filename: str):
         return FileResponse(path=output_path, filename=filename, media_type="multipart/form-data")
     except FileNotFoundError as e:
         logger.error("Error: " + str(e))
+        logger.error(traceback.format_exc())
         return JSONResponse(status_code=404, content={"code" : "file_not_found", "error": "File not found"})
     
 def delete_downloaded_file(request: Request):
@@ -58,6 +61,7 @@ def delete_downloaded_file(request: Request):
         return JSONResponse(status_code=200, content={"code" : "client_dir_deleted"})
     except FileNotFoundError as e:
         logger.error("Error: " + str(e))
+        logger.error(traceback.format_exc())
         return JSONResponse(status_code=404, content={"code" : "file_not_found", "error": "File not found"})
 
 def delete_client_dir(client_dir):    
@@ -90,7 +94,7 @@ async def websocket_handler(websocket: WebSocket):
     except (WebSocketDisconnect, Exception) as e:
         logger.error("Error: " + str(e))
         if client_dir: delete_client_dir(client_dir)
-        traceback.print_exc()
+        logger.error(traceback.format_exc())
         logger.info("Client disconnected during video processing.")
 
 async def process_video(video_name: str, client_dir: str, data = None, websocket: WebSocket = None):
