@@ -17,9 +17,9 @@ window_title =
 plot_scale_factor = 0.0
 
 [connection]
-server_address = 
-websocket_port = 
-http_port = 
+server_address = backend
+websocket_port = 8080
+http_port = 8000
 file_base_path = data/files/input
 connect_timeout = 10
 read_timeout = 10
