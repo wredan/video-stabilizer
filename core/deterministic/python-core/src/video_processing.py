@@ -15,8 +15,8 @@ class VideoProcessing:
         self.client_dir = client_dir
         self.config_parameters = config_parameters
         self.websocket = websocket
-        video_path = os.path.join(config_parameters.path_in, client_dir, video_name)
-        self.video = Video(video_path)
+        self.video_path = os.path.join(config_parameters.path_in, client_dir, video_name)
+        self.video = Video(self.video_path)
         self.motion_estimation = MotionEstimation(self.config_parameters)
         self.smoothing = FramePositionSmoothing(self.config_parameters, client_dir=client_dir)
         self.post_processing = PostProcessing()
@@ -104,10 +104,19 @@ class VideoProcessing:
         del self.video.frame_inp
 
         # Saving file
+        temp_path = os.path.join(self.config_parameters.base_path, self.client_dir, "temp.mp4")
+        
+        await self.video.write(frames_out= frames, path= temp_path, websocket= self.websocket)
+
         file_name = self.video_name.split('.')[0] + ".mp4"
         path = os.path.join(self.config_parameters.base_path, self.client_dir, file_name)
-        
-        await self.video.write(frames_out= frames, path= path, websocket= self.websocket)
+
+        await self.video.add_audio(
+            video_path_without_audio= temp_path,
+            video_path_with_audio= self.video_path,
+            output_path=path,
+            websocket= self.websocket
+            )
           
         return file_name
 

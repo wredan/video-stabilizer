@@ -11,6 +11,7 @@ class JsonEncoder:
     STATE_INIT_FRAMES_SHIFT = "init_frames_shift"
     STATE_INIT_FRAMES_CROPPING = "init_frames_cropping"
     STATE_INIT_VIDEO_WRITING = "init_video_writing"
+    STATE_INIT_AUDIO_WRITING = "init_audio_writing"
     STATE_UPDATE_STEP = "update_step"
 
     @staticmethod
@@ -77,6 +78,10 @@ class JsonEncoder:
     @classmethod
     def init_video_writing_json(cls, message):
         return cls.generate_json(cls.STATE_INIT_VIDEO_WRITING, message)
+    
+    @classmethod
+    def init_audio_writing_json(cls, message):
+        return cls.generate_json(cls.STATE_INIT_AUDIO_WRITING, message)
 
     @classmethod
     def update_step_json(cls, id, step, total):

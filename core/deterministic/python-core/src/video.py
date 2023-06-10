@@ -60,3 +60,14 @@ class Video:
                 raise
 
         logger.info("Video Export Completed")
+
+    async def add_audio(self, video_path_without_audio, video_path_with_audio, output_path, websocket: WebSocket= None):
+        logger = logging.getLogger('logger')
+        message = "Writing audio..."
+        logger.info(message)
+        await websocket.send_json(JsonEncoder.init_audio_writing_json(message))
+        clip_without_audio = VideoFileClip(video_path_without_audio)
+        clip_with_audio = VideoFileClip(video_path_with_audio)
+        clip_with_audio = clip_with_audio.subclip(0, clip_without_audio.duration)
+        final_clip = clip_without_audio.set_audio(clip_with_audio.audio)
+        final_clip.write_videofile(output_path, codec='libx264')
