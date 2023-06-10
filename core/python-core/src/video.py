@@ -1,10 +1,10 @@
+import asyncio
 import logging
 import traceback
 import cv2
 from fastapi import WebSocket, WebSocketDisconnect
 from tqdm import tqdm
 from src.request_handler.json_encoder import JsonEncoder
-from moviepy.editor import VideoFileClip
 
 class Video:
     def __init__(self, path):
@@ -45,8 +45,7 @@ class Video:
 
     async def write(self, frames_out, path, websocket: WebSocket= None):
         h, w = frames_out[0].shape[:2]
-        # fourcc = cv2.VideoWriter_fourcc(*'H264')
-        fourcc = -1
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         writer = cv2.VideoWriter(path, fourcc, self.fps, (w, h), True)
 
         logger = logging.getLogger('logger')
@@ -59,18 +58,35 @@ class Video:
             await websocket.send_json(JsonEncoder.update_step_json("writing", i, total))
             try:
                 await websocket.receive_text()
-            except WebSocketDisconnect:              
+            except WebSocketDisconnect:
                 raise
+        writer.release()
 
         logger.info("Video Export Completed")
 
     async def add_audio(self, video_path_without_audio, video_path_with_audio, output_path, websocket: WebSocket= None):
         logger = logging.getLogger('logger')
-        message = "Writing audio..."
-        logger.info(message)
-        await websocket.send_json(JsonEncoder.init_audio_writing_json(message))
-        clip_without_audio = VideoFileClip(video_path_without_audio)
-        clip_with_audio = VideoFileClip(video_path_with_audio)
-        clip_with_audio = clip_with_audio.subclip(0, clip_without_audio.duration)
-        final_clip = clip_without_audio.set_audio(clip_with_audio.audio)
-        final_clip.write_videofile(output_path, codec='libx264')
+
+        # Check if the original video has an audio track
+        cmd = f"ffprobe -v error -select_streams a -show_entries stream=codec_type -of default=noprint_wrappers=1:nokey=1 {video_path_with_audio}"
+        process = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        stdout, stderr = await process.communicate()
+
+        # If no audio track, just copy the video with libx264 without audio
+        if stdout.decode().strip() != "audio":
+            cmd = f"ffmpeg -i {video_path_without_audio} -c:v libx264 {output_path}"
+        else:
+            message = "Writing audio..."
+            logger.info(message)
+            await websocket.send_json(JsonEncoder.init_audio_writing_json(message))
+            cmd = f"ffmpeg -i {video_path_without_audio} -i {video_path_with_audio} -c:v libx264 -c:a aac -map 0:v:0 -map 1:a:0 {output_path}"
+
+        process = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        stdout, stderr = await process.communicate()
+
+        if process.returncode != 0:
+            raise Exception(f"FFmpeg failed with exit code {process.returncode}, stderr: {stderr.decode()}")
+
+        logger.info(f"FFmpeg finished with stdout: {stdout.decode()}")
+
+

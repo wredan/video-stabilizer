@@ -1,0 +1,16 @@
+version: "3"
+services:
+  frontend:
+    build: 
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+  backend:
+    build:
+      context: ./core/python-core
+      dockerfile: Dockerfile
+    volumes:
+      - "./core/python-core/logs:/app/logs"
+    ports:
+      - "8000:8000"

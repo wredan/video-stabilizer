@@ -6,7 +6,6 @@ import uuid
 from config.config_video import ConfigVideoParameters
 from fastapi import Request
 
-
 def get_file_ext(path):
     name_parts = path.split("/")[-1].split(".")
 

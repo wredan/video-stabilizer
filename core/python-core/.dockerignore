@@ -1,0 +1,9 @@
+*.log
+data/input/*
+data/output/*
+test_client.py
+.git
+.editorconfig
+/.vscode/*
+.gitignore
+*.zip

@@ -1,3 +1,4 @@
+import os
 from config.config_server import ConfigServerParameters
 from uvicorn import run
 import logging
@@ -28,4 +29,4 @@ if __name__ == "__main__":
         host=config_parameters.server_address, 
         port=config_parameters.http_port, 
         reload=False,
-        log_config="logs/log_uvicorn.ini")
+        log_config= "config/config_log_uvicorn.ini")
