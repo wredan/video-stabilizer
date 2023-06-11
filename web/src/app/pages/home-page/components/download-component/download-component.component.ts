@@ -33,7 +33,7 @@ export class DownloadComponent implements OnInit, OnDestroy {
       },
       error: err => {
         console.error('WebSocket error:', err);
-        this.notificationService.showError("Connection error has occurred.")
+        this.notificationService.showError("Connection error has occurred. Please reload the webpage.")
       }
     });
   }
