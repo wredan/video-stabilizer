@@ -1,3 +1,4 @@
+import asyncio
 import cv2
 from fastapi import WebSocket, WebSocketDisconnect
 import numpy as np
@@ -16,6 +17,7 @@ class FramesPrintDebug:
                     third_quadrant_title, 
                     fourth_quadrant_title, 
                     window_title, 
+                    path_temp,
                     path, 
                     fps, 
                     second_override, 
@@ -49,18 +51,33 @@ class FramesPrintDebug:
             except WebSocketDisconnect:              
                 raise
 
-        self.write(frames_out, path, fps)
+        self.write(frames_out, path_temp, path, fps)
 
-    def write(self, frames_out, path, fps):
+    def write(self, frames_out, path_temp, path, fps):
         h, w = frames_out[0].shape[:2]
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        writer = cv2.VideoWriter(path, fourcc, fps, (w, h), True)
+        # stand alone windows exec: use this: 
+        # writer = cv2.VideoWriter(path, -1, fps, (w, h), True) 
+        # prod:
+        writer = cv2.VideoWriter(path_temp, fourcc, fps, (w, h), True) 
 
         for frame in frames_out:
             writer.write(frame)
 
         logger = logging.getLogger('logger')
+        self.parseTolibx264(path_temp, path) # stand alone windows exec: comment this line
         logger.info("Video Export Completed")
+
+    async def parseTolibx264(self, video_path, output_path):
+        logger = logging.getLogger('logger')
+        cmd = f"ffmpeg -i {video_path} -c:v libx264 {output_path}"
+        process = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        stdout, stderr = await process.communicate()
+
+        if process.returncode != 0:
+            raise Exception(f"FFmpeg failed with exit code {process.returncode}, stderr: {stderr.decode()}")
+
+        logger.info(f"FFmpeg finished with stdout: {stdout.decode()}")
 
     def visualize_single_color_frame(self, anchor, target, third_quadrant, third_quadrant_title, fourth_quadrant, fourth_quadrant_title, title, a):
         h, w = 70, 10
@@ -77,11 +94,15 @@ class FramesPrintDebug:
         # reg of interest
         frame[h:h+H, :W, :] = anchor
         frame[h:h+H, W+w:2*W+w, :] = target if anchor.shape == target.shape else self.add_border(target, anchor.shape)
-        frame[h+H+20:2*H+h+20, :W, :] = third_quadrant
-        frame[h+H+20:2*H+h+20, W+w:2*W+w, :] = fourth_quadrant
+
+        third_quadrant_bgr = cv2.cvtColor(third_quadrant, cv2.COLOR_GRAY2BGR)
+        frame[h+H+20:2*H+h+20, :W, :] = third_quadrant_bgr
+
+        fourth_quadrant_bgr = cv2.cvtColor(fourth_quadrant, cv2.COLOR_GRAY2BGR)
+        frame[h+H+20:2*H+h+20, W+w:2*W+w, :] = fourth_quadrant_bgr
 
         return frame
-    
+
     def add_border(self, frame, original_shape):
         """
         Adds a black border to the frame to match the original shape, keeping the frame in the center.

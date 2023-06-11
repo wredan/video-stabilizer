@@ -37,34 +37,19 @@ class VideoProcessing:
         filtered_cropped_frames = frames
         if not self.config_parameters.crop_frames:
             filtered_cropped_frames = await self.post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors, websocket= self.websocket, update_crop_id="crop_comp_smot", compare_message="smoothed")
-        fil_crop_gmv, _, _, fil_frame_global_motion_vec = await self.motion_estimation.video_processing(frames, websocket=self.websocket, update_step_code="me2", compare_message="smoothed")
+        fil_crop_gmv, _, _, _ = await self.motion_estimation.video_processing(filtered_cropped_frames, websocket=self.websocket, update_step_code="me2", compare_message="smoothed")
         filtered_acc_motion = self.smoothing.get_accumulated_motion_vec(fil_crop_gmv)
 
         origin_cropped_frames = await self.post_processing.crop_frames(self.video.frame_inp, max_shift=self.post_processing.max_shift, websocket=self.websocket, update_crop_id="crop_comp_origin", compare_message="origin")
-        origin_crop_gmv, _, _, frame_global_motion_vec = await self.motion_estimation.video_processing(origin_cropped_frames, websocket=self.websocket, update_step_code="me1", compare_message="origin")
+        origin_crop_gmv, _, _, _ = await self.motion_estimation.video_processing(origin_cropped_frames, websocket=self.websocket, update_step_code="me1", compare_message="origin")
         origin_acc_motion = self.smoothing.get_accumulated_motion_vec(origin_crop_gmv)
         
         utils.plot_compare_motion(origin_acc_motion,
                                   filtered_acc_motion,
                                   os.path.join(self.config_parameters.base_path,
                                                self.client_dir,
-                                               (self.config_parameters.path_out + "_compare_motion.png" if self.config_parameters.demo else "compare_motion.png")),
+                                               "compare_motion.png"),
                                   self.config_parameters.plot_scale_factor)
-        
-        if self.config_parameters.demo:
-            await FramesPrintDebug().write_video(
-                global_motion_vectors=origin_crop_gmv,
-                video_frames=origin_cropped_frames,
-                third_quadrant=frame_global_motion_vec,
-                fourth_quadrant=fil_frame_global_motion_vec,
-                third_quadrant_title="Origin motion field",
-                fourth_quadrant_title="Filtered motion field",
-                window_title="Demo",
-                path=os.path.join(self.config_parameters.base_path, self.client_dir, "compare.mp4"),
-                fps=self.video.fps,
-                second_override=True,
-                second_quadrant=filtered_cropped_frames,
-                websocket=self.websocket)
                 
     async def _process_video_demo(self):
         global_correct_motion_vectors, frame_anchor_p_vec, frame_motion_field_vec, frame_global_motion_vec = await self.motion_estimation_and_correction()
@@ -79,6 +64,7 @@ class VideoProcessing:
             third_quadrant_title= "motion field", 
             fourth_quadrant_title= "global correction motion vector", 
             window_title= "Demo", 
+            path_temp = os.path.join(self.config_parameters.base_path, self.client_dir, "temp.mp4"),
             path= os.path.join(self.config_parameters.base_path, self.client_dir, self.config_parameters.path_out), 
             fps= self.video.fps, 
             second_override= True, 
