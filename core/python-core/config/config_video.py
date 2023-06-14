@@ -32,6 +32,7 @@ class ConfigVideoParameters:
         self.plot_scale_factor = float(kwargs.get("plot_scale_factor", default_params["plot_scale_factor"]))
         self.window_title = kwargs.get("window_title", self._generate_window_title())
         self.path_out = kwargs.get("path_out", self.generate_path_out())
+        self.docker = default_params["docker"]
 
     def _parse_default_params(self, config: configparser.ConfigParser) -> dict:
         block_size = tuple(int(size) for size in config.get("default", "block_size").split(","))
@@ -48,6 +49,7 @@ class ConfigVideoParameters:
             "plot_scale_factor": config.getfloat("default", "plot_scale_factor"),
             "compare_filtered_result": config.getboolean("default", "compare_filtered_result"),
             "crop_frames": config.getboolean("default", "crop_frames"),
+            "docker": config.getboolean("default", "docker"),
         }
 
     def generate_path_out(self) -> str:

@@ -15,6 +15,7 @@ motion_intensity = True
 demo = False
 window_title =
 plot_scale_factor = 0.0
+docker = True
 
 [connection]
 server_address = backend

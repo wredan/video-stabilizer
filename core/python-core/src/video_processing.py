@@ -56,10 +56,10 @@ class VideoProcessing:
         global_corrected_vect_frames = utils.plot_global_corrected_motion_vector(global_correct_motion_vectors, self.video.shape[1], self.video.shape[0])
         frames = await self.post_process_frames(global_correct_motion_vectors)
 
-        await FramesPrintDebug().write_video(
+        await FramesPrintDebug(self.config_parameters).write_video(
             global_motion_vectors= global_correct_motion_vectors, 
             video_frames= self.video.frame_inp,
-            third_quadrant= frame_global_motion_vec, 
+            third_quadrant= frame_motion_field_vec, 
             fourth_quadrant= global_corrected_vect_frames, 
             third_quadrant_title= "motion field", 
             fourth_quadrant_title= "global correction motion vector", 

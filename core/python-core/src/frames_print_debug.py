@@ -5,9 +5,11 @@ import numpy as np
 from tqdm import tqdm
 from src.request_handler.json_encoder import JsonEncoder
 import logging
+from config.config_video import ConfigVideoParameters
+
 class FramesPrintDebug:
-    def __init__(self):
-        pass
+    def __init__(self, config_parameters: ConfigVideoParameters):
+        self.config_parameters = config_parameters
 
     async def write_video(self, 
                     global_motion_vectors, 
@@ -51,21 +53,19 @@ class FramesPrintDebug:
             except WebSocketDisconnect:              
                 raise
 
-        self.write(frames_out, path_temp, path, fps)
+        await self.write(frames_out, path_temp, path, fps)
 
-    def write(self, frames_out, path_temp, path, fps):
+    async def write(self, frames_out, path_temp, path, fps):
         h, w = frames_out[0].shape[:2]
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        # stand alone windows exec: use this: 
-        # writer = cv2.VideoWriter(path, -1, fps, (w, h), True) 
-        # prod:
-        writer = cv2.VideoWriter(path_temp, fourcc, fps, (w, h), True) 
+        writer = cv2.VideoWriter(path_temp, fourcc, fps, (w, h), True) if self.config_parameters.docker else cv2.VideoWriter(path, -1, fps, (w, h), True) 
 
         for frame in frames_out:
             writer.write(frame)
 
         logger = logging.getLogger('logger')
-        self.parseTolibx264(path_temp, path) # stand alone windows exec: comment this line
+        if self.config_parameters.docker:
+            await self.parseTolibx264(path_temp, path)
         logger.info("Video Export Completed")
 
     async def parseTolibx264(self, video_path, output_path):

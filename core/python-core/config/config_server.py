@@ -15,7 +15,7 @@ class ConfigServerParameters:
         self.set_connection_parameters(config)
 
     def set_connection_parameters(self, config):
-        self.server_address = config.get('connection', 'server_address')
+        self.server_address = "backend" if config.getboolean("default", "docker") else config.get('connection', 'server_address')
         self.websocket_port = config.getint('connection', 'websocket_port')
         self.http_port = config.getint('connection', 'http_port')
         self.file_base_path = config.get('connection', 'file_base_path')
