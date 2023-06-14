@@ -8,40 +8,34 @@ class ThreeStepSearch:
     def __init__(self, search_range: int, blocks: List[Block], anchor: np.ndarray, target: np.ndarray):
         """
         Initialize the ThreeStepSearch class with the given parameters.
-        - search_range: the range within which we search for motion vectors.
-        - blocks: a list of Block objects, representing the blocks in the anchor frame.
-        - anchor: the anchor frame as a 2D NumPy array.
-        - target: the target frame as a 2D NumPy array.
         """
-        self.search_range = search_range
+        self.search_range = search_range // 2
         self.blocks = blocks
         self.anchor = anchor
         self.target = target
-        self.search_step = [search_range // 2, search_range // 4, search_range // 8]  # Define the search steps
-        self.search_areas = self._get_search_areas() 
     
-    def _get_search_areas(self):
-        """
-        Generate the search areas based on the search steps.
-        """
-        search_areas = []
-        for step in self.search_step:
-            dx = dy = [-step, 0, step]
-            search_areas.append([r for r in itertools.product(dx, dy)])
-        return search_areas
-
     def run(self):
         """
         Run the Three-Step Search algorithm to calculate motion vectors for each block.
         """
         for block in self.blocks:
-            # For each block, perform a three-step search to find the motion vector
-            step1 = self._single_step_search(block, block.coord, self.search_areas[0])
-            step2 = self._single_step_search(block, step1, self.search_areas[1])
-            step3 = self._single_step_search(block, step2, self.search_areas[2])
+            search_step = self.search_range
+            search_coord = block.coord
+            first_step = True
+
+            while search_step >= 1:
+                # If it's the first step, search 9 points. Otherwise, search 8 points.
+                if first_step:
+                    search_area = [(dx, dy) for dx in [-search_step, 0, search_step] for dy in [-search_step, 0, search_step]]
+                    first_step = False
+                else:
+                    search_area = [(dx, dy) for dx in [-search_step, 0, search_step] for dy in [-search_step, 0, search_step] if not (dx == 0 and dy == 0)]
+
+                search_coord = self._single_step_search(block, search_coord, search_area)
+                search_step //= 2
 
             # Compute the motion vector for the block and update its mv property
-            x, y, _, _ = step3
+            x, y, _, _ = search_coord
             block.mv = (x - block.coord[0], y - block.coord[1])
             block.calculate_mv_amp()
         
@@ -50,9 +44,6 @@ class ThreeStepSearch:
     def _single_step_search(self, block: Block, search_coord: Tuple[int, int, int, int], search_area: List[Tuple[int, int]]):
         """
         Perform a single step search for a block.
-        - block: a Block object for which we're searching the motion vector.
-        - search_coord: the starting coordinate for the search.
-        - search_area: the area within which we perform the search.
         """
         # Extract the block from the anchor frame
         x, y, w, h = block.coord
