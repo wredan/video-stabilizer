@@ -1,12 +1,13 @@
 import configparser
-
+from src.utils import MotionEstimationMethod
 class ConfigVideoParameters:
     def __init__(self, **kwargs) -> None:
         config = configparser.ConfigParser()
         config.read("config/config.ini")
         self.set_default_parameters(kwargs, config)
 
-    def set_stabilization_parameters(self, block_size, search_range, filter_intensity, crop_frames, compare_motion):
+    def set_stabilization_parameters(self, motion_estimation_method, block_size, search_range, filter_intensity, crop_frames, compare_motion):
+        self.motion_estimation_method = motion_estimation_method
         self.block_size = block_size
         self.search_range = search_range
         self.filter_intensity = filter_intensity
@@ -20,6 +21,7 @@ class ConfigVideoParameters:
         self.base_path = kwargs.get("base_path", default_params["base_path"])
 
         self.block_size = default_params["block_size"]
+        self.motion_estimation_method = MotionEstimationMethod[default_params["motion_estimation_method"]]        
         self.search_range = default_params["search_range"]
         self.filter_intensity = default_params["filter_intensity"]
         self.crop_frames = kwargs.get("debug_mode", default_params["crop_frames"])
@@ -40,6 +42,7 @@ class ConfigVideoParameters:
             "path_in": config.get("default", "path_in"),
             "base_path": config.get("default", "base_path"),
             "path_out": "",
+            "motion_estimation_method": config.get("default", "motion_estimation_method"),
             "block_size": block_size,
             "search_range": config.getint("default", "search_range"),
             "filter_intensity": config.getfloat("default", "filter_intensity"),

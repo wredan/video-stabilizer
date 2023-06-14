@@ -68,6 +68,7 @@ def file_uploaded_JSON(filename = None):
         "data": {
             "filename": filename,
             "stabilization_parameters": {
+                "motion_estimation_method": 0,
                 "block_size": 64, 
                 "search_range": 16, 
                 "filter_intensity": 80, 

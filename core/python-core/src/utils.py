@@ -1,3 +1,4 @@
+from enum import Enum
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,12 +6,13 @@ import matplotlib.pyplot as plt
 class DFD:
     def __init__(self):
         pass
-    
-    # def mad(m1,m2):
-    #     return np.absolute(np.subtract(m1,m2)).mean()
 
     def mse(m1,m2):
         return np.square(np.subtract(m1,m2)).mean()
+    
+class MotionEstimationMethod(Enum):
+    BLOCK_MATCHING = 0
+    OPTICAL_FLOW = 1
 
 def opencv_show_image(win_name, img):
     cv2.namedWindow(win_name, cv2.WINDOW_AUTOSIZE)

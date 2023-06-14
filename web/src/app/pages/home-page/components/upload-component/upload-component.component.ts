@@ -89,6 +89,7 @@ export class UploadComponent {
               data: {
                 filename: filename,
                 stabilization_parameters: {
+                  motion_estimation_method: "OPTICAL_FLOW",
                   block_size: this.uploadForm.value.blockSize,
                   search_range: this.uploadForm.value.searchRange,
                   filter_intensity: this.uploadForm.value.filterIntensity,

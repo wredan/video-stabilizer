@@ -100,12 +100,13 @@ async def websocket_handler(websocket: WebSocket):
 async def process_video(video_name: str, client_dir: str, data = None, websocket: WebSocket = None):
     config_parameters = ConfigVideoParameters()
     if data is not None:
-        block_size, search_range, filter_intensity, crop_frames, compare_motion = get_stabilization_parameters(data, config_parameters)
-        config_parameters.set_stabilization_parameters(block_size= block_size, 
-                                                       search_range= search_range, 
-                                                       filter_intensity= filter_intensity, 
-                                                       crop_frames= crop_frames,
-                                                       compare_motion= compare_motion)
+        motion_estimation_method, block_size, search_range, filter_intensity, crop_frames, compare_motion = get_stabilization_parameters(data, config_parameters)
+        config_parameters.set_stabilization_parameters(motion_estimation_method=motion_estimation_method,
+                                                        block_size= block_size, 
+                                                        search_range= search_range, 
+                                                        filter_intensity= filter_intensity, 
+                                                        crop_frames= crop_frames,
+                                                        compare_motion= compare_motion)
         if config_parameters.demo:
             config_parameters.path_out = config_parameters.generate_path_out()
 

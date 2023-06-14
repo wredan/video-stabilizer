@@ -106,7 +106,7 @@ class VideoProcessing:
 
           
         return file_name
-
+    
     async def run(self):
         await self.video.read_frames(self.websocket)
         try:

@@ -5,6 +5,7 @@ import re
 import uuid
 from config.config_video import ConfigVideoParameters
 from fastapi import Request
+from src.utils import MotionEstimationMethod
 
 def get_file_ext(path):
     name_parts = path.split("/")[-1].split(".")
@@ -37,10 +38,12 @@ def is_valid_filename(filename):
 def get_stabilization_parameters(data, config_parameters: ConfigVideoParameters):
     data = data.get("data", {})
     stabilization_parameters = data.get('stabilization_parameters', {})
+    motion_estimation_method = MotionEstimationMethod[stabilization_parameters.get('motion_estimation_method', config_parameters.motion_estimation_method)]
+    print(motion_estimation_method)
     block_size = int(stabilization_parameters.get('block_size', config_parameters.block_size))
     search_range = int(stabilization_parameters.get('search_range', config_parameters.search_range))
     filter_intensity = int(stabilization_parameters.get('filter_intensity', config_parameters.filter_intensity))
     crop_frames = bool(stabilization_parameters.get('crop_frames', config_parameters.crop_frames))
     compare_motion = bool(stabilization_parameters.get('compare_motion', config_parameters.crop_frames))
 
-    return (block_size, block_size) , search_range, filter_intensity, crop_frames, compare_motion
+    return motion_estimation_method, (block_size, block_size) , search_range, filter_intensity, crop_frames, compare_motion

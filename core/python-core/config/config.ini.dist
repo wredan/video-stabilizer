@@ -3,6 +3,7 @@ path_in = data/files/input
 base_path = data/files/output
 path_out =
 
+motion_estimation_method = 0
 block_size = 64
 search_range = 16
 filter_intensity = 40.0
