@@ -7,7 +7,7 @@
     <div *ngIf="!webSocketService.start_processing">
       <div class="mx-3 sm:mx-7 lg:mx-10 p-6 mb-10 mt-6 rounded-lg bg-white shadow-xl flex flex-col md:flex-grow md:overflow-hidden">
         <div class="pb-6 text-center font-medium text-xl text-black">What is this app?</div>
-          <p class="text-gray-500">This application uses a <b>three-step block</b> matching algorithm for motion estimation as part of a video stabilization process. This involves dividing the video frames into <b>macroblocks</b> and comparing these blocks to nearby frames. <b>Motion vectors</b> are then created that model the movement of the macroblocks. 
+          <p class="text-gray-500">This application uses a <b>three-step search</b> block matching algorithm for motion estimation as part of a video stabilization process. This involves dividing the video frames into <b>macroblocks</b> and comparing these blocks to nearby frames. <b>Motion vectors</b> are then created that model the movement of the macroblocks. 
             <b>Global motion vectors</b> are subsequently obtained by averaging the motion vectors of the macroblocks, frame by frame.</p>
           <p class="text-gray-500">In the <b>motion filtering</b> phase, the <b>Frame Position Smoothing</b> method is used. This calculates a <b>corrective motion vector</b> based on the difference between the <b>actual</b> and <b>estimated positions</b> of a point in a frame. The estimated position is obtained by applying a <b>Fourier transform</b> to the position variation of a point over time and using a <b>low pass filter</b>.</p>
           <p class="text-gray-500">In the <b>post-processing</b> stage, the frames are <b>cropped</b> to produce a stable video output.</p>
