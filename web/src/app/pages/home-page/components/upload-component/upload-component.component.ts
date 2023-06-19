@@ -72,19 +72,19 @@ export class UploadComponent {
     this.draggingOver = false;
     this.webSocketService.start_processing = false;
     this.downloadCompIsVisible = false;
-    this.webSocketService.end_processing = false;
     this.uploadProgress = 0;
   }
 
   onSubmit() {
-    if(this.videoUrl) URL.revokeObjectURL(this.videoUrl)
-    this.webSocketService.start_processing = false;
-    this.downloadCompIsVisible = false
+    if(this.videoUrl) URL.revokeObjectURL(this.videoUrl)    
     if (this.uploadForm.valid && this.videoFile) {
       const formData = new FormData();
       if (this.videoFile) {
         formData.append('file', this.videoFile);
       }
+      this.webSocketService.start_processing = false;
+      this.webSocketService.processing = true;
+      this.downloadCompIsVisible = false
 
       this.videoService.uploadVideo(formData, this.videoFile.name).subscribe({
         next: (event) => {
@@ -126,6 +126,8 @@ export class UploadComponent {
         },
         error: (err) => {
           console.error(err);
+          this.webSocketService.start_processing = false
+          this.webSocketService.processing = false;
           this.notificationService.showError("An error during uploading occurred.")
           this.reset()
         },

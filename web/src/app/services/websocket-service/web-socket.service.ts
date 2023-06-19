@@ -12,7 +12,7 @@ export class WebSocketService {
   private webSocketUrl = environment.webSocketUrl;
   
   public start_processing = false
-  public end_processing = false
+  public processing = false
   
   public connect(): void {
     if (this.socket$ && !this.socket$.closed) {

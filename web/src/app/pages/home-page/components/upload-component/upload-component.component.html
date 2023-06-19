@@ -60,15 +60,12 @@
             <mat-slide-toggle formControlName="compareMotion"></mat-slide-toggle>
           </div>
     
-          <div *ngIf="!webSocketService.end_processing" class="flex justify-center mt-12">
-            <button mat-raised-button color="primary" type="submit" [disabled]="uploadProgress > 0 || webSocketService.start_processing">Upload</button>
-          </div>
-          <div *ngIf="webSocketService.end_processing" class="flex flex-row justify-around mt-12">
+          <div class="flex flex-row justify-around mt-12">
             <div class="flex">            
-              <button mat-raised-button style="color: white" color="accent" type="button" (click)="reset()" [disabled]="uploadProgress > 0">Reset</button>
+              <button mat-raised-button  color="accent" type="button" (click)="reset()" [disabled]="uploadProgress > 0 || webSocketService.processing">Reset</button>
             </div>
             <div class="flex">            
-              <button mat-raised-button color="primary" type="submit" [disabled]="uploadProgress > 0">Upload</button>
+              <button mat-raised-button color="primary" type="submit" [disabled]="uploadProgress > 0 || webSocketService.processing">Upload</button>
             </div>
           </div>          
           <div class="flex justify-center mt-12" *ngIf="this.uploadProgress > 0">

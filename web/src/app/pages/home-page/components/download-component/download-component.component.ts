@@ -26,7 +26,6 @@ export class DownloadComponent implements OnInit, OnDestroy {
         if (message.state === 'file_processed_success') { 
           this.filename = message.data.filename; 
           this.title = "Downloading the video..."      
-          this.webSocketService.end_processing = true   
           this.downloadFile();          
           this.subscription!.unsubscribe();
         }
@@ -49,6 +48,7 @@ export class DownloadComponent implements OnInit, OnDestroy {
           this.videoUrl = URL.createObjectURL(blob);
           this.title = "Stabilized video ready - "
           this.deleteFiles();
+          this.webSocketService.processing = false   
         },
         error: err => {
           console.error('Download error:', err);

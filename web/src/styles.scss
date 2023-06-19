@@ -23,6 +23,11 @@ $my-app-theme: mat.define-light-theme(
 );
 
 @include mat.all-component-themes($my-app-theme);
+
+.mat-mdc-raised-button.mat-accent {
+  --mdc-protected-button-container-color: #ffab40;
+  --mdc-protected-button-label-text-color: #fff
+}
   
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
