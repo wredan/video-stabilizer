@@ -61,7 +61,7 @@ class ConfigVideoParameters:
         self.path_out = self.generate_path_out()
 
     def generate_path_out(self) -> str:
-        return "BS{}-SR{}-FI{}.mp4".format(self.stabilization_parameters.motion_estimation.block_matching.block_size, 
+        return "BS{}-SR{}-FI{}.mp4".format(self.stabilization_parameters.motion_estimation.block_matching.block_size[0], 
                                            self.stabilization_parameters.motion_estimation.block_matching.search_range, 
                                            self.stabilization_parameters.filter_intensity)
 
