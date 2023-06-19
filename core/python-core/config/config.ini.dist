@@ -4,8 +4,7 @@ base_path = data/files/output
 path_out =
 
 motion_estimation_method = 0
-block_size = 64
-search_range = 16
+
 filter_intensity = 40.0
 crop_frames = False
 compare_filtered_result = False
@@ -17,6 +16,21 @@ demo = False
 window_title =
 plot_scale_factor = 0.0
 docker = True
+
+[blockmatching]
+block_size = 64
+search_range = 16
+
+[opticalflow]
+max_corners=100
+quality_level=0.3
+min_distance=7
+block_size=7
+
+win_size=15
+max_level=2
+
+min_feature_threshold = 5
 
 [connection]
 server_address = backend

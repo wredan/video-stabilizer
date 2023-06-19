@@ -1,12 +1,13 @@
 import hashlib
 import os
+from src.request_handler.data import IncomingData
 from starlette.websockets import WebSocketState
 from fastapi import WebSocket, UploadFile, Request, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from src.video_processing import VideoProcessing
 from src.request_handler.json_encoder import JsonEncoder
 from config.config_video import ConfigVideoParameters
-from .utils import create_in_dir_from_client_address, create_out_dir_from_client_address, get_file_ext, get_stabilization_parameters, is_valid_file, is_valid_filename
+from .utils import create_in_dir_from_client_address, create_out_dir_from_client_address, get_file_ext, is_valid_file, is_valid_filename
 import json
 import shutil
 import traceback
@@ -79,15 +80,15 @@ async def websocket_handler(websocket: WebSocket):
         data = await websocket.receive_text()
         data = json.loads(data)
         if 'state' in data and data['state'] == 'start_processing':
+            incoming_data = IncomingData(**data)
             logger.info("Got file, start processing...")
-            filename = data.get('data', {}).get('filename')
-            if(is_valid_filename(filename)):    
+            if(is_valid_filename(incoming_data.data["filename"])):    
                 client_dir = hashlib.sha256(websocket.client.host.encode()).hexdigest()
-                proc_file_name = await process_video(filename, client_dir, data, websocket)
+                proc_file_name = await process_video(client_dir, incoming_data, websocket)
                 response = JsonEncoder.file_processed_JSON(proc_file_name)
                 await websocket.send_json(response)
             else:
-                response = JsonEncoder.error_filename_JSON(filename)
+                response = JsonEncoder.error_filename_JSON(incoming_data.data["filename"])
                 logger.info("Filename not valid")
                 await websocket.send_json(response)
                 await websocket.close()
@@ -97,20 +98,12 @@ async def websocket_handler(websocket: WebSocket):
         logger.error(traceback.format_exc())
         logger.info("Client disconnected during video processing.")
 
-async def process_video(video_name: str, client_dir: str, data = None, websocket: WebSocket = None):
+async def process_video(client_dir: str, data: IncomingData = None, websocket: WebSocket = None):
     config_parameters = ConfigVideoParameters()
     if data is not None:
-        motion_estimation_method, block_size, search_range, filter_intensity, crop_frames, compare_motion = get_stabilization_parameters(data, config_parameters)
-        config_parameters.set_stabilization_parameters(motion_estimation_method=motion_estimation_method,
-                                                        block_size= block_size, 
-                                                        search_range= search_range, 
-                                                        filter_intensity= filter_intensity, 
-                                                        crop_frames= crop_frames,
-                                                        compare_motion= compare_motion)
-        if config_parameters.demo:
-            config_parameters.path_out = config_parameters.generate_path_out()
+        config_parameters.set_stab_parameters(data.data['motion_estimation_method'], data.data['stabilization_parameters'])
 
-    video_processing = VideoProcessing(video_name= video_name,
+    video_processing = VideoProcessing(video_name= data.data['filename'],
                                        client_dir=client_dir,
                                        config_parameters=config_parameters,
                                        websocket= websocket)

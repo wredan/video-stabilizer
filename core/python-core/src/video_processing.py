@@ -28,14 +28,14 @@ class VideoProcessing:
 
     async def post_process_frames(self, global_correct_motion_vectors):
         frames = await self.post_processing.shift_frames(self.video.frame_inp, global_correct_motion_vectors, websocket=self.websocket)
-        if self.config_parameters.crop_frames:
+        if self.config_parameters.stabilization_parameters.crop_frames:
             frames = await self.post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors, websocket=self.websocket)
         return frames
     
     async def compare_and_plot(self, frames, global_correct_motion_vectors):
 
         filtered_cropped_frames = frames
-        if not self.config_parameters.crop_frames:
+        if not self.config_parameters.stabilization_parameters.crop_frames:
             filtered_cropped_frames = await self.post_processing.crop_frames(frames, global_correct_motion_vectors=global_correct_motion_vectors, websocket= self.websocket, update_crop_id="crop_comp_smot", compare_message="smoothed")
         fil_crop_gmv, _, _, _ = await self.motion_estimation.video_processing(filtered_cropped_frames, websocket=self.websocket, update_step_code="me2", compare_message="smoothed")
         filtered_acc_motion = self.smoothing.get_accumulated_motion_vec(fil_crop_gmv)
@@ -71,7 +71,7 @@ class VideoProcessing:
             second_quadrant= frames,
             websocket= self.websocket)
         
-        if self.config_parameters.compare_filtered_result:
+        if self.config_parameters.stabilization_parameters.compare_filtered_result:
             await self.compare_and_plot(frames, global_correct_motion_vectors)
         
         return self.config_parameters.path_out
@@ -83,7 +83,7 @@ class VideoProcessing:
         # Step 3: Post-Processing
         frames = await self.post_process_frames(global_correct_motion_vectors)
         
-        if self.config_parameters.compare_filtered_result:
+        if self.config_parameters.stabilization_parameters.compare_filtered_result:
             await self.compare_and_plot(frames, global_correct_motion_vectors)
         
         del global_correct_motion_vectors

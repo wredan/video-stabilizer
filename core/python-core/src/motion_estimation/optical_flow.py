@@ -7,16 +7,15 @@ class OpticalFlow:
         # Parameters
         self.config_parameters = config_parameters
 
-        self.feature_params = dict(maxCorners=100,
-                           qualityLevel=0.3,
-                           minDistance=7,
-                           blockSize=7)
+        params = self.config_parameters.stabilization_parameters.motion_estimation.optical_flow
+        self.feature_params = dict(maxCorners=params.feature_params.max_corners,
+                           qualityLevel=params.feature_params.quality_level,
+                           minDistance=params.feature_params.min_distance,
+                           blockSize=params.feature_params.block_size)
 
-        self.lk_params = dict(winSize=(15,15),
-                            maxLevel=2,
-                            criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-
-        self.min_feature_threshold = 5
+        self.lk_params = dict(winSize=params.lk_params.win_size,
+                            maxLevel=params.lk_params.max_level,
+                            criteria=params.lk_params.criteria)
         
         # Frames
         self.anchor = None
@@ -27,23 +26,12 @@ class OpticalFlow:
         self.anchor = anchor
         self.target = target
 
-        # Define ROI boundaries
-        frame_height, frame_width = self.anchor.shape
-        roi_top = int(frame_height * 0.25)
-        roi_bottom = int(frame_height * 0.75)
-        roi_left = int(frame_width * 0.25)
-        roi_right = int(frame_width * 0.75)
-
-        # Create a mask for the ROI
-        roi_mask = np.zeros_like(self.anchor, dtype=np.uint8)
-        roi_mask[roi_top:roi_bottom, roi_left:roi_right] = 255
-
         if self.features is None:
             self.features = cv2.goodFeaturesToTrack(self.anchor, mask=None, **self.feature_params)
 
         flow, st, err = cv2.calcOpticalFlowPyrLK(self.anchor, self.target, self.features, None, **self.lk_params)
 
-        if flow is None or np.count_nonzero(st) < self.min_feature_threshold:
+        if flow is None or np.count_nonzero(st) < self.config_parameters.stabilization_parameters.motion_estimation.optical_flow.feature_params.min_feature_threshold:
             self.features = cv2.goodFeaturesToTrack(self.anchor, mask=None, **self.feature_params)
             flow, st, err = cv2.calcOpticalFlowPyrLK(self.anchor, self.target, self.features, None, **self.lk_params)
 
@@ -62,7 +50,6 @@ class OpticalFlow:
             return global_motion_vec, None, frame_motion_field, frame_global_motion_vector
         else:
             return global_motion_vec, None, None, None
-
 
 
     def plot_motion_field(self, good_old, good_new): 

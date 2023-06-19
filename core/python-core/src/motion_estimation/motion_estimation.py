@@ -47,15 +47,18 @@ class MotionEstimation:
             raise
 
     async def video_processing(self, frames, websocket: WebSocket, update_step_code = 'me', compare_message = ""):
-        message = "Motion Estimation (Block Matching - Three Step Search) processing " + compare_message + "..."
         logger = logging.getLogger('logger')
+        motion_estimation = None
+        
+        if self.config_parameters.stabilization_parameters.motion_estimation.motion_estimation_method == MotionEstimationMethod.BLOCK_MATCHING:
+            motion_estimation = BlockMatching(self.config_parameters)
+            message = "Motion Estimation (Block Matching - Three Step Search) processing " + compare_message + "..."
+
+        elif self.config_parameters.stabilization_parameters.motion_estimation.motion_estimation_method == MotionEstimationMethod.OPTICAL_FLOW:
+            message = "Motion Estimation (Sparse Optical Flow) processing " + compare_message + "..."
+            motion_estimation = OpticalFlow(self.config_parameters)
+
         logger.info(message)
         await websocket.send_json(JsonEncoder.init_motion_estimation_json(message, state=update_step_code))
-
-        motion_estimation = None
-        if self.config_parameters.motion_estimation_method == MotionEstimationMethod.BLOCK_MATCHING:
-            motion_estimation = BlockMatching(self.config_parameters)
-        elif self.config_parameters.motion_estimation_method == MotionEstimationMethod.OPTICAL_FLOW:
-            motion_estimation = OpticalFlow(self.config_parameters)
 
         return await self._process_frames(motion_estimation, frames, websocket, update_step_code)

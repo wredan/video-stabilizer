@@ -22,7 +22,7 @@ class BlockMatching:
 
         raw_blocks = self.frame2blocks()
 
-        three_step_search = ThreeStepSearch(self.config_parameters.search_range, raw_blocks, anchor, target)
+        three_step_search = ThreeStepSearch(self.config_parameters.stabilization_parameters.motion_estimation.block_matching.search_range, raw_blocks, anchor, target)
         blocks = three_step_search.run()
 
         global_motion_vec = self.frame_global_motion_vector(blocks)
@@ -38,7 +38,7 @@ class BlockMatching:
     def frame2blocks(self):
         """Divides the frame matrix into block objects."""
         (H,W) = self.anchor_shape 
-        (sizeH,sizeW) = self.config_parameters.block_size
+        (sizeH,sizeW) = self.config_parameters.stabilization_parameters.motion_estimation.block_matching.block_size
 
         blocks = [Block(w*sizeW, h*sizeH, sizeW, sizeH) for h in range(H//sizeH) for w in range(W//sizeW)]
 
@@ -62,7 +62,7 @@ class BlockMatching:
     def plot_motion_field(self, blocks: List[Block]): # Construct the motion field from motion-vectors
         frame = np.zeros((self.anchor_shape[0], self.anchor_shape[1]), dtype=np.uint8)
         for block in blocks:
-            intensity = int(255. * block.mv_amp / Block.max_mv_amp) if self.config_parameters.motion_intensity and Block.max_mv_amp != 0 else 255
+            intensity = int(255. * block.mv_amp / Block.max_mv_amp) if self.config_parameters.stabilization_parameters.motion_estimation.motion_intensity and Block.max_mv_amp != 0 else 255
             x2, y2 = block.mv[0] + block.center[0], block.mv[1] + block.center[1]
             cv2.arrowedLine(frame, block.center, (x2, y2), intensity, 1, tipLength=0.3)
         return frame
