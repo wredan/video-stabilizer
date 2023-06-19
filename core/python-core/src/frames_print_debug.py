@@ -61,6 +61,8 @@ class FramesPrintDebug:
                 await websocket.receive_text()
             except WebSocketDisconnect:              
                 raise
+        writer.release()
+        await video.close_video_source()
 
         logger = logging.getLogger('logger')
         if self.config_parameters.docker:
@@ -69,6 +71,7 @@ class FramesPrintDebug:
 
     async def parseTolibx264(self, video_path, output_path):
         logger = logging.getLogger('logger')
+
         cmd = f"ffmpeg -i {video_path} -c:v libx264 {output_path}"
         process = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         stdout, stderr = await process.communicate()
