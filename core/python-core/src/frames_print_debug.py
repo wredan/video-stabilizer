@@ -6,14 +6,14 @@ from tqdm import tqdm
 from src.request_handler.json_encoder import JsonEncoder
 import logging
 from config.config_video import ConfigVideoParameters
-
+from src.video import Video
 class FramesPrintDebug:
     def __init__(self, config_parameters: ConfigVideoParameters):
         self.config_parameters = config_parameters
 
     async def write_video(self, 
                     global_motion_vectors, 
-                    video_frames, 
+                    video: Video, 
                     third_quadrant, 
                     fourth_quadrant, 
                     third_quadrant_title, 
@@ -22,7 +22,6 @@ class FramesPrintDebug:
                     path_temp,
                     path, 
                     fps, 
-                    second_override, 
                     second_quadrant, 
                     websocket: WebSocket=None):
         
@@ -31,14 +30,17 @@ class FramesPrintDebug:
         logger.info(message)
         await websocket.send_json(JsonEncoder.init_video_writing_json(message))
 
-        frames_out = []
-        total = len(video_frames)
-        for f in tqdm(range(total - 2)):
-            anchor = video_frames[f]
-            target = second_quadrant[f] if second_override else video_frames
+        await video.set_video_source()
+       
+        for f in tqdm(range(video.total_frame - 2)):
+            ret, anchor = video.video_source.read()  # Read the first frame
+            if not ret:
+                logger.error("Error in Frame Read")
+                return
+            
             out = self.visualize_single_color_frame(
                     anchor,
-                    target,
+                    second_quadrant[f],
                     third_quadrant[f],
                     third_quadrant_title,
                     fourth_quadrant[f],
@@ -46,27 +48,24 @@ class FramesPrintDebug:
                     window_title,
                     f
                 )
-            frames_out.append(out)
-            await websocket.send_json(JsonEncoder.update_step_json("visualize", f, total))
+            
+            if f == 0:
+                h, w = out.shape[:2]
+                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+                writer = cv2.VideoWriter(path_temp, fourcc, fps, (w, h), True) if self.config_parameters.docker else cv2.VideoWriter(path, -1, fps, (w, h), True)
+            
+            writer.write(out)
+            del out
+            await websocket.send_json(JsonEncoder.update_step_json("visualize", f, video.total_frame))
             try:
                 await websocket.receive_text()
             except WebSocketDisconnect:              
                 raise
 
-        await self.write(frames_out, path_temp, path, fps)
-
-    async def write(self, frames_out, path_temp, path, fps):
-        h, w = frames_out[0].shape[:2]
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        writer = cv2.VideoWriter(path_temp, fourcc, fps, (w, h), True) if self.config_parameters.docker else cv2.VideoWriter(path, -1, fps, (w, h), True) 
-
-        for frame in frames_out:
-            writer.write(frame)
-
         logger = logging.getLogger('logger')
         if self.config_parameters.docker:
             await self.parseTolibx264(path_temp, path)
-        logger.info("Video Export Completed")
+        logger.info("Video Export Completed")       
 
     async def parseTolibx264(self, video_path, output_path):
         logger = logging.getLogger('logger')

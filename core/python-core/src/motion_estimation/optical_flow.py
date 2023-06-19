@@ -22,7 +22,7 @@ class OpticalFlow:
         self.target = None
         self.features = None
 
-    def step(self, anchor, target): 
+    def step(self, anchor, target, plot = False): 
         self.anchor = anchor
         self.target = target
 
@@ -44,12 +44,12 @@ class OpticalFlow:
 
         global_motion_vec = self.frame_global_motion_vector(good_old, good_new)
 
-        if self.config_parameters.demo:
+        if self.config_parameters.demo and plot:
             frame_motion_field = self.plot_motion_field(good_old, good_new)
             frame_global_motion_vector = self.plot_global_motion_vector(global_motion_vec)
-            return global_motion_vec, None, frame_motion_field, frame_global_motion_vector
+            return global_motion_vec, frame_motion_field, frame_global_motion_vector
         else:
-            return global_motion_vec, None, None, None
+            return global_motion_vec, None, None
 
 
     def plot_motion_field(self, good_old, good_new): 

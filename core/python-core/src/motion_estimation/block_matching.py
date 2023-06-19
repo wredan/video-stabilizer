@@ -17,7 +17,7 @@ class BlockMatching:
 
         self.anchor_p = None
 
-    def step(self, anchor, target): # Single-step for given frames
+    def step(self, anchor, target, plot = False): # Single-step for given frames
         self.anchor_shape  = anchor.shape
 
         raw_blocks = self.frame2blocks()
@@ -27,13 +27,12 @@ class BlockMatching:
 
         global_motion_vec = self.frame_global_motion_vector(blocks)
 
-        if self.config_parameters.demo:
-            frame_anchor_p = self.blocks2frame(blocks, anchor)
+        if self.config_parameters.demo and plot:
             frame_motion_field = self.plot_motion_field(blocks)
             frame_global_motion_vector = self.plot_global_motion_vector(global_motion_vec)
-            return global_motion_vec, frame_anchor_p, frame_motion_field, frame_global_motion_vector
+            return global_motion_vec, frame_motion_field, frame_global_motion_vector
         else:
-            return global_motion_vec, None, None, None
+            return global_motion_vec, None, None
 
     def frame2blocks(self):
         """Divides the frame matrix into block objects."""
@@ -47,17 +46,6 @@ class BlockMatching:
         Block.min = blocks[0].coord
         Block.max = blocks[-1].coord
         return blocks
-
-    def blocks2frame(self, blocks: List[Block], anchor): # build up the frame from blocks (predicted frame only use-case)
-        frame = np.zeros((self.anchor_shape[0], self.anchor_shape[1]), dtype=np.uint8)
-
-        for block in blocks:
-            x, y, w, h = block.coord
-            block_a = anchor[y:y+h, x:x+w]
-            x, y = x + block.mv[0], y + block.mv[1]
-            frame[y:y+h, x:x+w] = block_a
-
-        return frame
 
     def plot_motion_field(self, blocks: List[Block]): # Construct the motion field from motion-vectors
         frame = np.zeros((self.anchor_shape[0], self.anchor_shape[1]), dtype=np.uint8)

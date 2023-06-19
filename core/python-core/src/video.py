@@ -12,36 +12,35 @@ class Video:
         self.frame_inp = []
         self.shape = (0, 0) # H,W
         self.fps = None
+        self.video_source = None
+        self.total_frame = 0
 
-    async def read_frames(self, websocket: WebSocket= None):
+    async def set_video_source(self):
         logger = logging.getLogger('logger')
         try: 
-            source = cv2.VideoCapture(self.path)
-            total_frame = int(source.get(cv2.CAP_PROP_FRAME_COUNT))
-            self.fps = source.get(cv2.CAP_PROP_FPS)  # Get the FPS of the video
+            self.video_source = cv2.VideoCapture(self.path)
+            self.total_frame = int(self.video_source.get(cv2.CAP_PROP_FRAME_COUNT))
+            self.fps = self.video_source.get(cv2.CAP_PROP_FPS)  # Get the FPS of the video
         except Exception as e:            
             logger.error("Error: " + str(e))
             logger.error(traceback.format_exc())
             return
         
-        message = "Reading frames..."
-        logger.info(message)
-        await websocket.send_json(JsonEncoder.init_reading_frames(message))
-        for i in tqdm(range(total_frame)):
-            ret, frame = source.read()
-            if not (ret or frame):
-                logger.info("Error in Frame Read")
-                break
-            self.frame_inp.append(frame)
-            if self.shape == (0, 0):
-                self.shape = (frame.shape[0], frame.shape[1])
-            await websocket.send_json(JsonEncoder.update_step_json("reading", i, total_frame))
-            try:
-                await websocket.receive_text()
-            except WebSocketDisconnect:              
-                raise
-
-        logger.info("Video Import Completed")
+    async def get_video_shape(self,):
+        logger = logging.getLogger('logger')
+        await self.set_video_source()
+        ret, frame = self.video_source.read()
+        if not (ret or frame):
+            logger.info("Error in Frame Read")
+            return self.shape  
+        self.shape = (frame.shape[0], frame.shape[1])
+        await self.close_video_source()   
+        return self.shape
+        
+    async def close_video_source(self):
+        if self.video_source is not None:
+            self.video_source.release()
+            self.video_source = None
 
     async def write(self, frames_out, path, websocket: WebSocket= None):
         h, w = frames_out[0].shape[:2]
