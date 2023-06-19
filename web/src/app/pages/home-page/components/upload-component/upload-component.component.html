@@ -6,20 +6,40 @@
         <h2>Parameters</h2>
         <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
           <mat-form-field class="w-full mb-4">
-            <mat-label>Block Size</mat-label>
-            <mat-select formControlName="blockSize">
-              <mat-option value="32">32</mat-option>
-              <mat-option value="64">64</mat-option>
-              <mat-option value="128">128</mat-option>
-              <mat-option value="256">256</mat-option>
-              <mat-option value="512">512</mat-option>
+            <mat-label>Motion Estimation</mat-label>
+            <mat-select formControlName="motionEstimationMethod" (selectionChange)="onMethodChange($event.value)">
+              <mat-option value="BLOCK_MATCHING">Block Matching - Three Step Search</mat-option>
+              <mat-option value="OPTICAL_FLOW">Sparse Optical Flow</mat-option>
             </mat-select>
           </mat-form-field>
-    
-          <mat-form-field class="w-full mb-4">
-            <mat-label>Search Range</mat-label>
-            <input matInput type="number" formControlName="searchRange" min="2" max="32">
-          </mat-form-field>
+
+          <div [hidden]="uploadForm.controls.motionEstimationMethod.value !== 'OPTICAL_FLOW'">
+            <mat-form-field class="w-full mb-4">
+              <mat-label>Motion Type</mat-label>
+              <mat-select formControlName="ofMotionType">
+                <mat-option value="0">Optical flow for slow and detailed movements</mat-option>
+                <mat-option value="1">Optical flow for fast movements</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div [hidden]="uploadForm.controls.motionEstimationMethod.value !== 'BLOCK_MATCHING'">
+            <mat-form-field class="w-full mb-4">
+              <mat-label>Block Size</mat-label>
+              <mat-select formControlName="blockSize">
+                <mat-option value="32">32</mat-option>
+                <mat-option value="64">64</mat-option>
+                <mat-option value="128">128</mat-option>
+                <mat-option value="256">256</mat-option>
+                <mat-option value="512">512</mat-option>
+              </mat-select>
+            </mat-form-field>
+      
+            <mat-form-field class="w-full mb-4">
+              <mat-label>Search Range</mat-label>
+              <input matInput type="number" formControlName="searchRange" min="2" max="32">
+            </mat-form-field>
+          </div>
     
           <div class="flex flex-col mb-5">
             <mat-label class="mb-2">Filter Intensity</mat-label>
@@ -43,9 +63,14 @@
           <div *ngIf="!webSocketService.end_processing" class="flex justify-center mt-12">
             <button mat-raised-button color="primary" type="submit" [disabled]="uploadProgress > 0 || webSocketService.start_processing">Upload</button>
           </div>
-          <div *ngIf="webSocketService.end_processing" class="flex justify-center mt-12">
-            <button mat-raised-button color="primary" type="button" (click)="reset()" [disabled]="uploadProgress > 0">Reset</button>
-          </div>
+          <div *ngIf="webSocketService.end_processing" class="flex flex-row justify-around mt-12">
+            <div class="flex">            
+              <button mat-raised-button style="color: white" color="accent" type="button" (click)="reset()" [disabled]="uploadProgress > 0">Reset</button>
+            </div>
+            <div class="flex">            
+              <button mat-raised-button color="primary" type="submit" [disabled]="uploadProgress > 0">Upload</button>
+            </div>
+          </div>          
           <div class="flex justify-center mt-12" *ngIf="this.uploadProgress > 0">
             <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
           </div>          

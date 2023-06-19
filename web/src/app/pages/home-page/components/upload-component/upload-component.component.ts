@@ -4,6 +4,8 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { NotificationService } from 'src/app/services/notification-service/notification.service';
 import { VideoService } from 'src/app/services/video-service/video-service.service';
 import { WebSocketService } from 'src/app/services/websocket-service/web-socket.service';
+import { environment } from 'src/environments/environment';
+
 @Component({
   selector: 'app-upload-component',
   templateUrl: './upload-component.component.html',
@@ -18,17 +20,19 @@ export class UploadComponent {
   videoPlayerOption: any;
 
   uploadForm = this.formBuilder.group({
-    blockSize: ['64', Validators.required],
+    motionEstimationMethod: [environment.defaultFormValues.motionEstimationMethod, Validators.required],
+    ofMotionType: [environment.defaultFormValues.ofMotionType, Validators.required],
+    blockSize: [environment.defaultFormValues.blockSize, Validators.required],
     searchRange: [
-      16,
+      environment.defaultFormValues.searchRange,
       [Validators.required, Validators.min(2), Validators.max(32)],
     ],
     filterIntensity: [
-      40,
+      environment.defaultFormValues.filterIntensity,
       [Validators.required, Validators.min(0), Validators.max(100)],
     ],
-    cropFrames: [false, Validators.required],
-    compareMotion: [false, Validators.required],
+    cropFrames: [environment.defaultFormValues.cropFrames, Validators.required],
+    compareMotion: [environment.defaultFormValues.compareMotion, Validators.required],
   });
 
   downloadCompIsVisible: boolean = false
@@ -40,14 +44,25 @@ export class UploadComponent {
     private notificationService: NotificationService 
   ) {}
 
+  onMethodChange(value: string) {
+    if (value === 'BLOCK_MATCHING') {
+      this.uploadForm.controls['blockSize'].setValue(environment.defaultFormValues.blockSize);
+      this.uploadForm.controls['searchRange'].setValue(environment.defaultFormValues.searchRange);
+    } else if (value === 'OPTICAL_FLOW') {
+      this.uploadForm.controls['ofMotionType'].setValue(environment.defaultFormValues.ofMotionType);
+    }
+  }  
+
   reset() {
     // Reset the form
     this.uploadForm.reset({
-      blockSize: '64',
-      searchRange: 16,
-      filterIntensity: 40,
-      cropFrames: false,
-      compareMotion: false
+      motionEstimationMethod: environment.defaultFormValues.motionEstimationMethod,
+      ofMotionType: environment.defaultFormValues.ofMotionType,
+      blockSize: environment.defaultFormValues.blockSize,
+      searchRange: environment.defaultFormValues.searchRange,
+      filterIntensity: environment.defaultFormValues.filterIntensity,
+      cropFrames: environment.defaultFormValues.cropFrames,
+      compareMotion: environment.defaultFormValues.compareMotion
     });
 
     // Reset other variables
@@ -62,6 +77,9 @@ export class UploadComponent {
   }
 
   onSubmit() {
+    if(this.videoUrl) URL.revokeObjectURL(this.videoUrl)
+    this.webSocketService.start_processing = false;
+    this.downloadCompIsVisible = false
     if (this.uploadForm.valid && this.videoFile) {
       const formData = new FormData();
       if (this.videoFile) {
@@ -88,17 +106,22 @@ export class UploadComponent {
               state: 'start_processing',
               data: {
                 filename: filename,
+                motion_estimation_method: this.uploadForm.value.motionEstimationMethod,
                 stabilization_parameters: {
-                  motion_estimation_method: "OPTICAL_FLOW",
-                  block_size: this.uploadForm.value.blockSize,
-                  search_range: this.uploadForm.value.searchRange,
+                  motion_estimation: {
+                    block_matching: {
+                      block_size: this.uploadForm.value.blockSize,
+                      search_range: this.uploadForm.value.searchRange,
+                    },
+                    optical_flow: this.getOfParams(this.uploadForm.value.ofMotionType!)
+                  },
                   filter_intensity: this.uploadForm.value.filterIntensity,
                   crop_frames: this.uploadForm.value.cropFrames,
                   compare_motion: this.uploadForm.value.compareMotion
                 },
               },
             });
-            this.videoService.compare_motion_request = this.uploadForm.value.compareMotion!
+            this.videoService.compare_motion_request = this.uploadForm.value.compareMotion!            
           }
         },
         error: (err) => {
@@ -109,6 +132,14 @@ export class UploadComponent {
       });
     } else {
       this.notificationService.showError("You need to choose a file before uploading anything!")
+    }
+  }
+  
+  getOfParams(index: string) {
+    switch(index){
+      case '0': return environment.opticalFlowParams[0];
+      case '1': return environment.opticalFlowParams[1];
+      default: return null;
     }
   }
 
