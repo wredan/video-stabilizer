@@ -44,7 +44,7 @@ class FramesPrintDebug:
                     third_quadrant[f],
                     third_quadrant_title,
                     fourth_quadrant[f],
-                    f"{fourth_quadrant_title} - {global_motion_vectors[f]}",
+                    f"{fourth_quadrant_title}",
                     window_title,
                     f
                 )
@@ -89,7 +89,7 @@ class FramesPrintDebug:
 
         cv2.putText(frame, title, (w, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, 0, 1, cv2.LINE_AA)
         cv2.putText(frame, f"anchor-{a:03}", (w, h - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 0, 1, cv2.LINE_AA)
-        cv2.putText(frame, f"target-{a+1:03}", (w + W, h - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 0, 1, cv2.LINE_AA)
+        cv2.putText(frame, f"target-{a:03}", (w + W, h - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 0, 1, cv2.LINE_AA)
         cv2.putText(frame, third_quadrant_title, (w, h + H + 17), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 0, 1, cv2.LINE_AA)
         cv2.putText(frame, fourth_quadrant_title, (w + W, h + H + 17), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 0, 1, cv2.LINE_AA)
 
