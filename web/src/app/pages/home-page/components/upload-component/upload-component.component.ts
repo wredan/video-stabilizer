@@ -66,7 +66,7 @@ export class UploadComponent {
     });
 
     // Reset other variables
-    URL.revokeObjectURL(this.videoUrl!)
+    if(this.videoUrl) URL.revokeObjectURL(this.videoUrl)
     this.videoFile = undefined;
     this.videoUrl = undefined;
     this.draggingOver = false;
@@ -76,7 +76,6 @@ export class UploadComponent {
   }
 
   onSubmit() {
-    if(this.videoUrl) URL.revokeObjectURL(this.videoUrl)    
     if (this.uploadForm.valid && this.videoFile) {
       const formData = new FormData();
       if (this.videoFile) {
