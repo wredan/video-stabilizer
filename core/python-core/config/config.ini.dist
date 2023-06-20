@@ -3,12 +3,12 @@ path_in = data/files/input
 base_path = data/files/output
 path_out =
 
-motion_estimation_method = 0
+motion_estimation_method = BLOCK_MATCHING
 
 filter_intensity = 40.0
 crop_frames = False
 compare_filtered_result = False
-padding_percentage = 15
+padding_percentage = 20
 
 motion_intensity = True
 
@@ -25,7 +25,7 @@ search_range = 16
 max_corners=100
 quality_level=0.3
 min_distance=7
-block_size=7
+block_size_of=7
 
 win_size=15
 max_level=2
@@ -33,8 +33,8 @@ max_level=2
 min_feature_threshold = 5
 
 [connection]
-server_address = backend
-websocket_port = 8080
+server_address = localhost
+websocket_port = 8765
 http_port = 8000
 file_base_path = data/files/input
 connect_timeout = 10
