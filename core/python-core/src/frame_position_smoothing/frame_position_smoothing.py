@@ -32,8 +32,26 @@ class FramePositionSmoothing:
         # Proceed with the Fourier transform as before
         input_x = np.fft.fft(accumulated_motion_padded[:, 0])
         input_y = np.fft.fft(accumulated_motion_padded[:, 1])
-        filtered_x = ndimage.fourier_gaussian(input_x, sigma=self.config_parameters.stabilization_parameters.filter_intensity)
-        filtered_y = ndimage.fourier_gaussian(input_y, sigma=self.config_parameters.stabilization_parameters.filter_intensity)
+        
+        # Calculate the Interquartile Range (IQR) for each set of data
+        # input_x_IQR = np.percentile(input_x.real, 75) - np.percentile(input_x.real, 25)
+        # input_y_IQR = np.percentile(input_y.real, 75) - np.percentile(input_y.real, 25)
+        # sigmaX = self.config_parameters.stabilization_parameters.filter_intensity / 100 * input_x_IQR
+        # sigmaY = self.config_parameters.stabilization_parameters.filter_intensity / 100 * input_y_IQR
+
+        # Calculate sigma based on std
+        # input_x_std_dev = np.std(input_x.real)
+        # input_y_std_dev = np.std(input_y.real)
+        # sigmaX = self.config_parameters.stabilization_parameters.filter_intensity / 100 * input_x_std_dev
+        # sigmaY = self.config_parameters.stabilization_parameters.filter_intensity / 100 * input_y_std_dev
+
+        # Give straight value of filter intensity to sigma
+        sigmaX = self.config_parameters.stabilization_parameters.filter_intensity
+        sigmaY = self.config_parameters.stabilization_parameters.filter_intensity
+
+        filtered_x = ndimage.fourier_gaussian(input_x, sigma=sigmaX)
+        filtered_y = ndimage.fourier_gaussian(input_y, sigma=sigmaY)
+
         inverse_filtered_data_x = np.real(np.fft.ifft(filtered_x))
         inverse_filtered_data_y = np.real(np.fft.ifft(filtered_y))
 
