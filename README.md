@@ -12,7 +12,7 @@ A video stabilizer using Three Step Search, Frame Position Smoothing and Croppin
 
 ## Installation
 
-Clone the repository and navigate to the root project folder, then run:
+Clone the repository, make your `config` and `config_log_uvicorn` ini files into python-core, navigate to the root project folder, then run:
 
 ```bash
 $ docker-compose up -d
